@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Twilio Video Call</title>
+    <script src="https://media.twiliocdn.com/sdk/js/video/releases/2.10.0/twilio-video.min.js"></script>
+    <input type="hidden" id="identity" value="{{ParticipantName}}">
+    <input type="hidden" id="roomName" value="{{YourRoomName}}">
+</head>
+<body>
+    <div id="video-container"></div>
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const identity = document.getElementById("identity").value(); // Replace with the participant's identity
+            const roomName = document.getElementById("roomName").value();  // Replace with the room name
+
+            console.log("identity == ", identity)
+            console.log("roomName == ", roomName)
+
+            fetch(`/generate-token/?identity=${identity}&room_name=${roomName}`)
+                .then(response => response.json())
+                .then(data => {
+                    const token = data.token;
+                    Twilio.Video.connect(token, { name: roomName }).then(room => {
+                        const localParticipant = room.localParticipant;
+                        console.log(`Connected to Room: ${room.name}`);
+
+                        // You can now display video streams and manage the call.
+                    }).catch(error => {
+                        console.error(`Error connecting to Room: ${error.message}`);
+                    });
+                });
+        });
+        
+    </script>
+</body>
+</html>

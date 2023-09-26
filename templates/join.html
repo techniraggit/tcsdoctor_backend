@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Twilio Video Call</title>
+</head>
+<body>
+    <div id="video-container"></div>
+    <button id="start-call-button">Start Video Call</button>
+    <input type="hidden" id="identity" value="{{ identity }}">
+    <input type="hidden" id="roomName" value="{{ roomName }}">
+    <script src="https://media.twiliocdn.com/sdk/js/video/releases/2.10.0/twilio-video.min.js"></script>
+    <!-- <script src="https://media.twiliocdn.com/sdk/js/video/v2/twilio-video.min.js"></script> -->
+
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const identity = document.getElementById("identity").value; // Replace with the participant's identity
+            const roomName = document.getElementById("roomName").value;  // Replace with the room name
+            console.log("identity === ", identity)
+            console.log("roomName === ", roomName)
+
+            // Function to create a Twilio Video connection and join the room
+            function joinVideoCall(roomSid) {
+                // Fetch the access token using the roomSid and other details
+                fetch(`/generate-token/?identity=${identity}&room_name=${roomName}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        const token = data.token;
+                        Twilio.Video.connect(token, { name: roomName }).then(room => {
+                            const localParticipant = room.localParticipant;
+                            console.log(`Connected to Room: ${room.name}`);
+
+                            // You can now display video streams and manage the call.
+
+                            // For example, you can attach the local participant's video to a DOM element:
+                            const localVideoElement = document.createElement('video');
+                            localParticipant.videoTracks.forEach(track => {
+                                localVideoElement.appendChild(track.attach());
+                            });
+                            document.getElementById('video-container').appendChild(localVideoElement);
+
+                            // Handle other participants joining, video stream updates, and more.
+                            room.on('participantConnected', participant => {
+                                console.log(`Participant '${participant.identity}' connected`);
+
+                                // Attach the participant's video to a DOM element
+                                const participantVideoElement = document.createElement('video');
+                                participant.tracks.forEach(track => {
+                                    participantVideoElement.appendChild(track.attach());
+                                });
+                                document.getElementById('video-container').appendChild(participantVideoElement);
+                            });
+
+                            // Handle participant disconnects and other events as needed.
+                        }).catch(error => {
+                            console.error(`Error connecting to Room: ${error.message}`);
+                        });
+                    });
+            }
+
+            // Attach a click event handler to the "Start Video Call" button
+            document.getElementById('start-call-button').addEventListener('click', () => {
+                joinVideoCall('RM8cf25797c5314cd47634afb66f9f38ed'); // Replace with the actual room SID
+            });
+        });
+    </script>
+</body>
+</html>
