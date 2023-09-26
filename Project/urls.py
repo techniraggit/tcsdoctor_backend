@@ -19,15 +19,15 @@ from django.urls import path, include
 from django.conf import settings
 from django.conf.urls.static import static
 
-# from doctor.views import GenerateVideoAccessToken
 
 urlpatterns = [
     path("backend/", admin.site.urls),
     path("accounts/", include("accounts.urls")),
     path("admin/", include("administrator.urls")),
     path("doctor/", include("doctor.urls")),
-    #     path('generate-token/', GenerateVideoAccessToken.as_view(), name='generate-video-token'),
 ]
+
+
 if settings.DEBUG:
     urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
@@ -35,4 +35,4 @@ if settings.DEBUG:
 
 admin.site.site_header = "The Database Captain"
 admin.site.site_title = "Admin Portal"
-admin.site.index_title = "Welcome to the World of Teleconsultation"
+admin.site.index_title = "Welcome to the World of Tele Consultation"

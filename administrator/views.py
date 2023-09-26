@@ -273,15 +273,18 @@ class DoctorView(AdminViewMixin):
                 {"status": False, "message": "Days off should be in Array"}, 400
             )
 
-        if not isinstance(salary, int or float):
+        try:
+            salary = float(salary)
+        except:
             return Response(
                 {"status": False, "message": " Invalid value for Salary"}, 400
             )
 
-        if not isinstance(appointment_charges, int or float):
+        try:
+            appointment_charges = float(appointment_charges)
+        except:
             return Response(
-                {"status": False, "message": "Invalid value for Appointment charges"},
-                400,
+                {"status": False, "message": " Invalid value for Appointment charges"}, 400
             )
 
         existing_user = (

@@ -254,6 +254,20 @@ class PatientView(DoctorViewMixin):
         return Response({"status": True, "data": data}, 200)
 
 
+from doctor.serializers import DoctorSerializer
+
+
+class ProfileView(DoctorViewMixin):
+    def get(self, request):
+        try:
+            doctor_obj = Doctors.objects.get(user=request.user)
+        except:
+            return Response({"status": False, "message": "Doctor not found"})
+
+        data = DoctorSerializer(doctor_obj).data
+        return Response({"status": True, "data": data})
+
+
 class NotificationsView(DoctorViewMixin):
     def get(self, request):
         notifications = UserPushNotification.objects.filter(
