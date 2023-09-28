@@ -23,9 +23,22 @@ from django.db.models import (
 )
 from django.db import transaction
 from django.forms.models import model_to_dict
+from datetime import datetime
 
 
 # Create your views here.
+def validate_time(start_time, end_time):
+    try:
+        start_time_obj = datetime.strptime(start_time, "%H:%M")
+        end_time_obj = datetime.strptime(end_time, "%H:%M")
+
+        if end_time_obj <= start_time_obj:
+            return False
+        return True
+    except ValueError:
+        return False
+
+
 class DoctorView(AdminViewMixin):
     def get(self, request):
         id = request.GET.get("id")
@@ -111,6 +124,15 @@ class DoctorView(AdminViewMixin):
                 400,
             )
 
+        if not validate_time(start_working_hr, end_working_hr):
+            return Response(
+                {
+                    "status": False,
+                    "message": "Invalid combination of start working hours and end working hours",
+                },
+                400,
+            )
+
         if not isinstance(working_days, list):
             return Response(
                 {"status": False, "message": "Working days should be in Array"}, 400
@@ -127,7 +149,8 @@ class DoctorView(AdminViewMixin):
             appointment_charges = float(appointment_charges)
         except:
             return Response(
-                {"status": False, "message": " Invalid value for Appointment charges"}, 400
+                {"status": False, "message": " Invalid value for Appointment charges"},
+                400,
             )
 
         if clinic_contact_no:
@@ -284,7 +307,8 @@ class DoctorView(AdminViewMixin):
             appointment_charges = float(appointment_charges)
         except:
             return Response(
-                {"status": False, "message": " Invalid value for Appointment charges"}, 400
+                {"status": False, "message": " Invalid value for Appointment charges"},
+                400,
             )
 
         existing_user = (
@@ -338,13 +362,15 @@ class DoctorView(AdminViewMixin):
             with transaction.atomic():
                 user_obj.first_name = first_name
                 user_obj.last_name = last_name
-                user_obj.profile_image = profile_image
+                if profile_image:
+                    user_obj.profile_image = profile_image
                 user_obj.email = email
                 user_obj.phone_number = phone_number
                 user_obj.save()
 
                 doctor_obj.specialization = specialization
-                doctor_obj.medical_license = medical_license
+                if medical_license:
+                    doctor_obj.medical_license = medical_license
                 doctor_obj.education = education
                 doctor_obj.clinic_name = clinic_name
                 doctor_obj.clinic_address = clinic_address
@@ -413,6 +439,7 @@ class AppointmentView(AdminViewMixin):
         doctor_id = request.GET.get("id")
         search_query = (request.GET.get("search_query", "")).lower()
         appointment_id = request.GET.get("appointment_id")
+
         if appointment_id:
             try:
                 query_set = Appointments.objects.get(pk=appointment_id)

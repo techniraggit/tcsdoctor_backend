@@ -46,6 +46,7 @@ class DoctorsAdmin(admin.ModelAdmin):
         "start_working_hr",
         "end_working_hr",
         "priority",
+        "working_days",
         "is_active",
     ]
     list_filter = ["is_active"]

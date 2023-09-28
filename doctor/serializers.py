@@ -48,10 +48,14 @@ class UsersSerializer(BaseSerializer):
 
 class PatientsSerializer(BaseSerializer):
     user = UsersSerializer()
+    age = serializers.SerializerMethodField()
 
     class Meta:
         model = Patients
         fields = "__all__"
+
+    def get_age(self, obj):
+        return obj.age()
 
 
 class AppointmentsSerializer(BaseSerializer):
