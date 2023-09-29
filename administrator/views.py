@@ -38,7 +38,8 @@ def validate_time(start_time, end_time):
     except ValueError:
         return False
 
-
+from utilities.pigeon.service import send_sms
+from utilities.pigeon.templates import WELCOME
 class DoctorView(AdminViewMixin):
     def get(self, request):
         id = request.GET.get("id")
@@ -55,7 +56,6 @@ class DoctorView(AdminViewMixin):
         return Response({"status": True, "data": data}, 200)
 
     def post(self, request):
-        print(request.data)
         first_name = request.data.get("first_name")
         last_name = request.data.get("last_name")
         profile_image = request.FILES.get("profile_image")
@@ -203,6 +203,7 @@ class DoctorView(AdminViewMixin):
                     appointment_charges=appointment_charges,
                     salary=salary,
                 )
+                send_sms(user_obj.phone_number, WELCOME)
             return Response(
                 {
                     "status": True,
