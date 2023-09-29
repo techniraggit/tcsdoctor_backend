@@ -27,11 +27,12 @@ class DateTimeFieldMixin(models.Model):
 
 
 class AdminViewMixin(APIView):
-    pass
     # authentication_classes = [UniqueTokenAuthentication, JWTAuthentication]
-    # permission_classes = [IsAuthenticated, IsAdminOnly]
+    authentication_classes = [JWTAuthentication]
+    permission_classes = [IsAuthenticated, IsAdminOnly]
 
 
 class DoctorViewMixin(APIView):
-    authentication_classes = [UniqueTokenAuthentication, JWTAuthentication]
+    # authentication_classes = [UniqueTokenAuthentication, JWTAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated, IsDoctorOnly]
