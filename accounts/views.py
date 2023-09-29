@@ -90,10 +90,12 @@ class SendLoginOTPView(APIView):
                 )
 
             else:
-                send_sms(
+                sms_status = send_sms(
                     user_get.phone_number,
                     LOGIN_OTP.format(first_name=user_get.first_name, otp=user_get.otp),
                 )
+                if not sms_status:
+                    return Response({"status": False, "message": "Message sending failed. Please try again later."}, 500)
                 return Response(
                     {"status": True, "message": f"Otp sent to {user_get.phone_number}"}
                 )

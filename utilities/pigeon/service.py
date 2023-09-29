@@ -6,14 +6,20 @@ from django.core.mail import (
 )
 from django.conf import settings
 from twilio.rest import Client
+from rest_framework.response import Response
 
 client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
 
 
 def send_sms(mobile, message):
-    message = client.messages.create(
-        body=f"{message}", from_=settings.TWILIO_NUMBER, to=f"{mobile}"
-    )
+    try:
+        message = client.messages.create(
+            body=f"{message}", from_=settings.TWILIO_NUMBER, to=f"+91{mobile}"
+        )
+        return True
+    except Exception as e:
+        print(e)
+        return False
 
 
 # Send Email using Falcon API
