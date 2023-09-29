@@ -55,6 +55,7 @@ class DoctorView(AdminViewMixin):
         return Response({"status": True, "data": data}, 200)
 
     def post(self, request):
+        print(request.data)
         first_name = request.data.get("first_name")
         last_name = request.data.get("last_name")
         profile_image = request.FILES.get("profile_image")
@@ -137,6 +138,8 @@ class DoctorView(AdminViewMixin):
             return Response(
                 {"status": False, "message": "Working days should be in Array"}, 400
             )
+
+        working_days = [working_day.strip() for working_day in working_days]
 
         try:
             salary = float(salary)
@@ -280,8 +283,8 @@ class DoctorView(AdminViewMixin):
                 400,
             )
 
-        if not is_valid_date(start_working_hr, "%H:%M:%S") or not is_valid_date(
-            end_working_hr, "%H:%M:%S"
+        if not is_valid_date(start_working_hr, "%H:%M") or not is_valid_date(
+            end_working_hr, "%H:%M"
         ):
             return Response(
                 {
@@ -295,6 +298,8 @@ class DoctorView(AdminViewMixin):
             return Response(
                 {"status": False, "message": "Days off should be in Array"}, 400
             )
+
+        working_days = [working_day.strip() for working_day in working_days]
 
         try:
             salary = float(salary)

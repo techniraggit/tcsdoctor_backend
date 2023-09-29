@@ -40,7 +40,7 @@ class AppointmentsAdmin(admin.ModelAdmin):
 @admin.register(Doctors)
 class DoctorsAdmin(admin.ModelAdmin):
     list_display = [
-        "id",
+        "user",
         "clinic_name",
         "clinic_contact_no",
         "start_working_hr",
@@ -50,4 +50,4 @@ class DoctorsAdmin(admin.ModelAdmin):
         "is_active",
     ]
     list_filter = ["is_active"]
-    search_fields = ["user__email", "user__phone_number"]
+    search_fields = ["user_id", "user__email", "user__phone_number", "clinic_name"]

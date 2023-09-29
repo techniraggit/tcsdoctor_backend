@@ -29,7 +29,7 @@ class User(AbstractUser, DateTimeFieldMixin):
     REQUIRED_FIELDS = ["first_name", "last_name"]
 
     def __str__(self):
-        return str(self.email)
+        return f"{self.id}"
 
     def get_otp(self):
         self.otp = generate_otp()
