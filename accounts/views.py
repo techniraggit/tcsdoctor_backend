@@ -176,7 +176,7 @@ from django.conf import settings
 
 
 class Logout(APIView):
-    authentication_classes = [UniqueTokenAuthentication, JWTAuthentication]
+    authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
