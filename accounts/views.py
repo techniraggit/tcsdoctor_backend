@@ -180,9 +180,9 @@ class Logout(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        token = str(request.META["HTTP_AUTHORIZATION"]).split()[-1]
-        payload = jwt.decode(jwt=token, key=settings.SECRET_KEY, algorithms=["HS256"])
-        cache.set(token, token, payload["exp"])
+        # token = str(request.META["HTTP_AUTHORIZATION"]).split()[-1]
+        # payload = jwt.decode(jwt=token, key=settings.SECRET_KEY, algorithms=["HS256"])
+        # cache.set(token, token, payload["exp"])
 
         logout(request)
         return Response(
