@@ -3,7 +3,6 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework.views import APIView
 from django.db import models
-from core.authentications import UniqueTokenAuthentication
 import pretty_errors
 
 
@@ -27,12 +26,10 @@ class DateTimeFieldMixin(models.Model):
 
 
 class AdminViewMixin(APIView):
-    # authentication_classes = [UniqueTokenAuthentication, JWTAuthentication]
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated, IsAdminOnly]
 
 
 class DoctorViewMixin(APIView):
-    # authentication_classes = [UniqueTokenAuthentication, JWTAuthentication]
     authentication_classes = [JWTAuthentication]
     permission_classes = [IsAuthenticated, IsDoctorOnly]

@@ -1,3 +1,4 @@
+from doctor.serializers import DoctorSerializer
 import requests
 from django.conf import settings
 from django.db import transaction
@@ -252,9 +253,6 @@ class PatientView(DoctorViewMixin):
             ).select_related("patient")
         data = AppointmentsSerializer(patients, many=True, fields=["patient"]).data
         return Response({"status": True, "data": data}, 200)
-
-
-from doctor.serializers import DoctorSerializer
 
 
 class ProfileView(DoctorViewMixin):
