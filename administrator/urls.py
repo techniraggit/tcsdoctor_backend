@@ -10,4 +10,5 @@ urlpatterns = [
     path("get_all_doctors_email", views.get_all_doctors_email),
     path("push-notification", views.PushNotificationView.as_view()),
     path("download-report", views.DownloadReportView.as_view()),
+    path("appointment-list", views.AppointmentListView.as_view()),
 ]

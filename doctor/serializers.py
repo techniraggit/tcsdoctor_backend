@@ -61,17 +61,7 @@ class PatientsSerializer(BaseSerializer):
 class AppointmentsSerializer(BaseSerializer):
     patient = PatientsSerializer(read_only=True, fields=["-user"])
     doctor = DoctorSerializer()
-    # filter_by = serializers.SerializerMethodField()
 
     class Meta:
         model = Appointments
         fields = "__all__"
-
-    # # schedule_date, status
-    # def get_filter_by(self, obj):
-    #     if obj.status == "completed":
-    #         return "Completed"
-    #     elif obj.status == "pending": #and obj.schedule_date > timezone.now:
-    #         return "Upcoming"
-    #     else:
-    #         return obj.status == "rescheduled"

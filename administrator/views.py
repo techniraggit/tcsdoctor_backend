@@ -1,3 +1,8 @@
+from utilities.pigeon.service import send_sms
+from openpyxl import Workbook
+from django.http import HttpResponse
+from openpyxl.writer.excel import save_virtual_workbook
+from utilities.pigeon.templates import WELCOME
 from core.decorators import admin_required
 from rest_framework.decorators import api_view
 from administrator.models import PushNotification, UserPushNotification
@@ -38,8 +43,7 @@ def validate_time(start_time, end_time):
     except ValueError:
         return False
 
-from utilities.pigeon.service import send_sms
-from utilities.pigeon.templates import WELCOME
+
 class DoctorView(AdminViewMixin):
     def get(self, request):
         id = request.GET.get("id")
@@ -205,7 +209,13 @@ class DoctorView(AdminViewMixin):
                 )
                 sms_status = send_sms(user_obj.phone_number, WELCOME)
                 if not sms_status:
-                    return Response({"status": False, "message": "Message sending failed. Please try again later."}, 500)
+                    return Response(
+                        {
+                            "status": False,
+                            "message": "Message sending failed. Please try again later.",
+                        },
+                        500,
+                    )
             return Response(
                 {
                     "status": True,
@@ -546,9 +556,6 @@ DOWNLOAD_ACTIONS_LIST = [
     "financial_report",
     "salary_and_payment_report",
 ]
-from openpyxl.writer.excel import save_virtual_workbook
-from django.http import HttpResponse
-from openpyxl import Workbook
 
 
 class DownloadReportView(AdminViewMixin):
@@ -627,3 +634,36 @@ class DownloadReportView(AdminViewMixin):
             pass
 
         return response
+
+
+class AppointmentListView(AdminViewMixin):
+    def get(self, request):
+        query_set = Appointments.objects.all().select_related("doctor", "patient").order_by("-schedule_date")
+        data = AppointmentsSerializer(query_set, many=True).data
+        return Response({"status": True, "data": data}, 200)
+
+    def put(self, request):
+        """to change the status of appointment"""
+        id = request.data.get("id")
+        status = request.data.get("status")
+
+        if not all([id, status]):
+            return Response(
+                {"status": False, "message": "Required values are missing"}, 400
+            )
+
+        try:
+            app_obj = Appointments.objects.get(pk=id)
+        except:
+            return Response({"status": False, "message": "Appointment not found"}, 404)
+
+        try:
+            app_obj.status = status
+            app_obj.save()
+            return Response(
+                {"status": True, "message": "Appointment updated successfully"}, 200
+            )
+        except Exception as e:
+            return Response(
+                {"status": False, "message": "Something went wrong", "detail": str(e)}
+            )
