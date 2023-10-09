@@ -139,7 +139,7 @@ APPOINTMENT_STATUS_CHOICES = (
 class Appointments(DateTimeFieldMixin):
     token = models.UUIDField(default=uuid.uuid4)
     patient = models.ForeignKey(Patients, on_delete=models.CASCADE)
-    doctor = models.ForeignKey(Doctors, on_delete=models.CASCADE)
+    doctor = models.ForeignKey(Doctors, on_delete=models.CASCADE, related_name="rel_doctor")
     schedule_date = models.DateTimeField()
     status = models.CharField(
         max_length=50, choices=APPOINTMENT_STATUS_CHOICES, default="pending"

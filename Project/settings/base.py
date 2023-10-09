@@ -183,7 +183,7 @@ TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN")
 TWILIO_NUMBER = os.environ.get("TWILIO_NUMBER")
 
 # FALCON EMAIL
-IS_SMTP = False
+IS_SMTP = os.environ.get("IS_SMTP", "").lower() == "true"
 FALCON_API_KEY = os.environ.get("FALCON_API_KEY")
 FALCON_API_URL = os.environ.get("FALCON_API_URL")
 FALCON_FROM_EMAIL = os.environ.get("FALCON_FROM_EMAIL")
