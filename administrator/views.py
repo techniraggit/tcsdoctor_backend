@@ -1,3 +1,9 @@
+from django.db.models import (
+    Sum,
+    Case,
+    When,
+    IntegerField,
+)
 from utilities.pigeon.service import send_sms
 from openpyxl import Workbook
 from django.http import HttpResponse
@@ -49,13 +55,15 @@ class DoctorView(AdminViewMixin):
         id = request.GET.get("id")
         if id:
             try:
-                query_set = Doctors.objects.select_related("user").get(user__id=id)
+                query_set = Doctors.objects.select_related(
+                    "user").get(user__id=id)
                 data = DoctorSerializer(query_set).data
                 return Response({"status": True, "data": data}, 200)
             except:
                 data = {}
                 return Response({"status": True, "data": data}, 200)
-        query_set = Doctors.objects.select_related("user").all().order_by("-created")
+        query_set = Doctors.objects.select_related(
+            "user").all().order_by("-created")
         data = DoctorSerializer(query_set, many=True).data
         return Response({"status": True, "data": data}, 200)
 
@@ -344,7 +352,8 @@ class DoctorView(AdminViewMixin):
 
         try:
             user_obj = User.objects.get(id=id)
-            doctor_obj = Doctors.objects.select_related("user").get(user__id=id)
+            doctor_obj = Doctors.objects.select_related(
+                "user").get(user__id=id)
 
         except Doctors.DoesNotExist:
             return Response(
@@ -630,15 +639,168 @@ class DownloadReportView(AdminViewMixin):
             response.write(virtual_excel_file)
 
         # FINANCIAL REPORT
-        elif action == "financial_report":
-            pass
+        elif action == "salary_and_payment_report":
+            doctor_ids = request.GET.get("doctor_ids")
+
+            headers = [
+                "Dr. NAME",
+                "EMAIL",
+                "PHONE",
+                "JAN",
+                "FEB",
+                "MAR",
+                "APR",
+                "MAY",
+                "JUN",
+                "JUL",
+                "AUG",
+                "SEP",
+                "OCT",
+                "NOV",
+                "DEC"
+            ]
+
+            worksheet.append(headers)
+
+            if doctor_ids:
+                try:
+                    doctor_ids = doctor_ids.split(",")
+                    ids = [int(i) for i in doctor_ids]
+                except:
+                    return Response({"status": False, "message": "Please ensure that the IDs are provided as a comma-separated list of integers."}, 400)
+
+                row_query_set = Appointments.objects.filter(doctor__user__id__in=ids).order_by("doctor__user__created")
+            else:
+                row_query_set = Appointments.objects.all().order_by("doctor__user__created")
+
+            queryset = row_query_set.values(
+                'doctor__user__first_name',
+                'doctor__user__email',
+                'doctor__user__phone_number',
+            ).annotate(
+                january=Sum(
+                    Case(
+                        When(schedule_date__month=1, then=1),
+                        default=0,
+                        output_field=IntegerField()
+                    )
+                ),
+                february=Sum(
+                    Case(
+                        When(schedule_date__month=2, then=1),
+                        default=0,
+                        output_field=IntegerField()
+                    )
+                ),
+                march=Sum(
+                    Case(
+                        When(schedule_date__month=3, then=1),
+                        default=0,
+                        output_field=IntegerField()
+                    )
+                ),
+                april=Sum(
+                    Case(
+                        When(schedule_date__month=4, then=1),
+                        default=0,
+                        output_field=IntegerField()
+                    )
+                ),
+                may=Sum(
+                    Case(
+                        When(schedule_date__month=5, then=1),
+                        default=0,
+                        output_field=IntegerField()
+                    )
+                ),
+                june=Sum(
+                    Case(
+                        When(schedule_date__month=6, then=1),
+                        default=0,
+                        output_field=IntegerField()
+                    )
+                ),
+                july=Sum(
+                    Case(
+                        When(schedule_date__month=7, then=1),
+                        default=0,
+                        output_field=IntegerField()
+                    )
+                ),
+                august=Sum(
+                    Case(
+                        When(schedule_date__month=8, then=1),
+                        default=0,
+                        output_field=IntegerField()
+                    )
+                ),
+                september=Sum(
+                    Case(
+                        When(schedule_date__month=9, then=1),
+                        default=0,
+                        output_field=IntegerField()
+                    )
+                ),
+                october=Sum(
+                    Case(
+                        When(schedule_date__month=10, then=1),
+                        default=0,
+                        output_field=IntegerField()
+                    )
+                ),
+                november=Sum(
+                    Case(
+                        When(schedule_date__month=11, then=1),
+                        default=0,
+                        output_field=IntegerField()
+                    )
+                ),
+                december=Sum(
+                    Case(
+                        When(schedule_date__month=12, then=1),
+                        default=0,
+                        output_field=IntegerField()
+                    )
+                )
+            )
+
+            for item in queryset:
+                row = [item['doctor__user__first_name'], item['doctor__user__email'], item['doctor__user__phone_number'],
+                       item['january'], item['february'], item['march'], item['april'],
+                       item['may'], item['june'], item['july'], item['august'],
+                       item['september'], item['october'], item['november'], item['december']]
+                worksheet.append(row)
+
+            worksheet.column_dimensions["A"].width = 15
+            worksheet.column_dimensions["B"].width = 25
+            worksheet.column_dimensions["C"].width = 15
+
+            worksheet.column_dimensions["D"].width = 5
+            worksheet.column_dimensions["E"].width = 5
+            worksheet.column_dimensions["F"].width = 5
+            worksheet.column_dimensions["G"].width = 5
+            worksheet.column_dimensions["H"].width = 5
+            worksheet.column_dimensions["I"].width = 5
+            worksheet.column_dimensions["J"].width = 5
+            worksheet.column_dimensions["K"].width = 5
+            worksheet.column_dimensions["L"].width = 5
+            worksheet.column_dimensions["M"].width = 5
+            worksheet.column_dimensions["N"].width = 5
+            worksheet.column_dimensions["O"].width = 5
+
+            virtual_excel_file = save_virtual_workbook(workbook)
+            response[
+                "Content-Disposition"
+            ] = f"attachment; filename=salary_and_payment_report.xlsx"
+            response.write(virtual_excel_file)
 
         return response
 
 
 class AppointmentListView(AdminViewMixin):
     def get(self, request):
-        query_set = Appointments.objects.all().select_related("doctor", "patient").order_by("-schedule_date")
+        query_set = Appointments.objects.all().select_related(
+            "doctor", "patient").order_by("-schedule_date")
         data = AppointmentsSerializer(query_set, many=True).data
         return Response({"status": True, "data": data}, 200)
 
@@ -654,8 +816,8 @@ class AppointmentListView(AdminViewMixin):
 
         try:
             app_obj = Appointments.objects.get(pk=id)
-        except:
-            return Response({"status": False, "message": "Appointment not found"}, 404)
+        except Exception as e:
+            return Response({"status": False, "message": "Appointment not found", "detail": str(e)}, 404)
 
         try:
             app_obj.status = status
@@ -665,5 +827,6 @@ class AppointmentListView(AdminViewMixin):
             )
         except Exception as e:
             return Response(
-                {"status": False, "message": "Something went wrong", "detail": str(e)}
+                {"status": False, "message": "Something went wrong",
+                    "detail": str(e)}
             )
