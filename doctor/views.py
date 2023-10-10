@@ -261,7 +261,7 @@ def reschedule_meeting(request):
             )
 
         datetime_str = date + " " + time
-        input_format = "%d-%m-%Y %H:%M"
+        input_format = "%Y-%m-%d %H:%M"
 
         schedule_date = datetime.strptime(datetime_str, input_format)
 
