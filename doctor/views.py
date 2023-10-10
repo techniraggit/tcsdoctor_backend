@@ -30,6 +30,43 @@ from twilio.jwt.access_token.grants import VideoGrant
 from django.shortcuts import render
 from django.http import JsonResponse
 
+from datetime import datetime, timedelta
+from django.db.models import Q
+from django.conf import settings
+from django.db.models import Min, Max
+from doctor.models import Doctors
+
+sel = "2023-09-28 12:00"
+
+from django.forms.models import model_to_dict
+
+
+def get_available_doctor(selected_date):
+    date_obj = datetime.strptime(selected_date, "%Y-%m-%d %H:%M")
+
+    date = date_obj.strftime("%Y-%m-%d")
+    time = date_obj.strftime("%H:%M:%S")
+    day = date_obj.strftime("%A")
+
+    doctors_not_in_appointments = Doctors.objects.filter(
+        Q(Q(appointments__status="completed") | Q(appointments__isnull=True))
+        & Q(working_days__contains=[day])
+        & Q(start_working_hr__lte=time)
+        & Q(end_working_hr__gte=time)
+    ).exclude(appointments__schedule_date=selected_date)
+
+    high_priority_doctor = doctors_not_in_appointments.filter(priority="high")
+    if high_priority_doctor:
+        return (high_priority_doctor.order_by("?").values_list("id", flat=True))[0]
+
+    medium_priority_doctor = doctors_not_in_appointments.filter(priority="medium")
+    if medium_priority_doctor:
+        return (medium_priority_doctor.order_by("?").values_list("id", flat=True))[0]
+
+    low_priority_doctor = doctors_not_in_appointments.filter(priority="low")
+    if low_priority_doctor:
+        return (low_priority_doctor.order_by("?").values_list("id", flat=True))[0]
+
 
 @token_required
 @api_view(["GET"])
@@ -169,9 +206,18 @@ def schedule_meeting(request):
                 )
                 patient_obj.save()
 
-                doctor_obj = Doctors.objects.filter(
-                    user__email="rajatlinux1@gmail.com"
-                ).first()
+                res_dr = get_available_doctor(patient_schedule_date)
+
+                try:
+                    doctor_obj = Doctors.objects.get(pk=res_dr)
+                except Exception as e:
+                    return Response(
+                        {
+                            "status": False,
+                            "message": "We couldn't find any available doctors. Please make another selection.",
+                        },
+                        400,
+                    )
 
                 appointment_obj = Appointments.objects.create(
                     patient=patient_obj,
@@ -179,10 +225,17 @@ def schedule_meeting(request):
                     schedule_date=patient_schedule_date,
                     meeting_link="http://0.0.0.0:9000/backend/accounts/user/",
                 )
-                appointment_obj.save()
 
-                data = AppointmentsSerializer(appointment_obj).data
-                return Response({"status": True, "data": data}, 201)
+                data = model_to_dict(appointment_obj)
+
+                return Response(
+                    {
+                        "status": True,
+                        "message": "The appointment has been successfully created",
+                        "data": data,
+                    },
+                    201,
+                )
         except Exception as e:
             return Response(
                 {
@@ -198,11 +251,22 @@ def schedule_meeting(request):
 @api_view(["PATCH"])
 def reschedule_meeting(request):
     if request.method == "PATCH":
-        schedule_date = request.data.get("schedule_date")
-        token = request.data.get("token")
+        date = request.data.get("date")
+        time = request.data.get("time")
+        appointment_id = request.data.get("appointment_id")
+
+        if not all([date, time, appointment_id]):
+            return Response(
+                {"status": False, "message": "Required fields are missing"}, 400
+            )
+
+        datetime_str = date + " " + time
+        input_format = "%d-%m-%Y %H:%M"
+
+        schedule_date = datetime.strptime(datetime_str, input_format)
 
         try:
-            appointment_obj = Appointments.objects.get(token=token)
+            appointment_obj = Appointments.objects.get(pk=appointment_id)
         except:
             return Response({"status": False, "message": "Appointment not found"}, 404)
 
@@ -210,6 +274,14 @@ def reschedule_meeting(request):
         appointment_obj.schedule_date
         appointment_obj.status
         appointment_obj.meeting_link
+        appointment_obj.save()
+        return Response(
+            {
+                "status": True,
+                "message": "Appointment has been successfully rescheduled",
+            },
+            200,
+        )
 
 
 class AppointmentView(DoctorViewMixin):
