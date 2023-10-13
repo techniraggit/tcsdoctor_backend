@@ -136,6 +136,7 @@ class ValidateLoginOTPView(APIView):
                             "user_type": user_type,
                             "first_name": user_get.first_name,
                             "last_name": user_get.last_name,
+                            "message": "You have been successfully logged in"
                         },
                         200,
                     )
