@@ -7,6 +7,7 @@ from datetime import datetime, timedelta, time
 from doctor.models import Doctors, Appointments
 from datetime import datetime
 
+
 # current_datetime = timezone.now()
 selected_date = "2023-10-12"
 # selected_date = "2023-09-27 01:58"
@@ -45,27 +46,28 @@ def home(selected_date):
     end_time = time(end_time.hour, end_time.minute)  # Replace with the desired end time
 
     # Generate available time slots within the working hours
-    current_time = datetime.combine(date_obj, start_time)
-    end_of_day = datetime.combine(date_obj, end_time)
-    print("Start Working Hours   End Working Hours")
-    for i in doctors:
-        print(i.start_working_hr, " --- ", i.end_working_hr)
+    current_time = datetime.combine(date_obj, start_time).time().strftime("%H:%M")
+    end_of_day = datetime.combine(date_obj, end_time).time().strftime("%H:%M")
 
-    available_time_slots = []
+    from utilities import TIME_SLOTS
 
-    while current_time + slot_duration <= end_of_day:
+    now_time = datetime.now().time().strftime("%H:%M")
 
-        if not doctors.filter( Q(start_working_hr__gte=current_time.time()) & Q(end_working_hr__lte=(current_time + slot_duration).time())).exists():
-            available_time_slots.append(
-                {
-                    "start_time": current_time.time().strftime("%H:%M"),
-                    "end_time": (current_time + slot_duration).time().strftime("%H:%M"),
-                }
-            )
+    start_time = "15:15"
+    start_time = current_time
+    end_time = "19:14"
+    end_time = end_of_day
 
-        current_time += slot_duration
+    # Convert start and end times to a comparable integer value
+    start_minutes = int(start_time[:2]) * 60 + int(start_time[3:])
+    end_minutes = int(end_time[:2]) * 60 + int(end_time[3:])
 
-    print(">>>>>", available_time_slots)
+    # Filter the slots based on the specified time range
+    appointments = Appointments.objects.all()
+    filtered_slots = {}
+    for key, value in TIME_SLOTS.items():
+        if start_minutes < int(value[:2]) * 60 + int(value[3:]) < end_minutes:
+            filtered_slots[key] = value
+            filtered_slots["is_avail"] = appointments.filter(slot_key=key, schedule_date__date=date, doctor__user__id__in=doctors.values_list("user__id", flat=True)).exists()
 
 
-home(selected_date)

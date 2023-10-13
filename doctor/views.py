@@ -42,18 +42,27 @@ from django.forms.models import model_to_dict
 
 
 def get_available_doctor(selected_date):
+    print(f'selected_date; {selected_date}, {type(selected_date)}')
     date_obj = datetime.strptime(selected_date, "%Y-%m-%d %H:%M")
 
-    date = date_obj.strftime("%Y-%m-%d")
-    time = date_obj.strftime("%H:%M:%S")
+
+
+    print(f'date_obj: {date_obj}, {type(date_obj)}')
     day = date_obj.strftime("%A")
+    time = date_obj.time()
+    date = date_obj.date()
+    added_time = (date_obj+ timedelta(minutes=15))
+
+    print("date ============= ", date)
+    print("time ============= ", time)
+    print("day ============= ", day)
+    print("added_time ============= ", added_time, type(added_time))
 
     doctors_not_in_appointments = Doctors.objects.filter(
-        Q(Q(appointments__status="completed") | Q(appointments__isnull=True))
-        & Q(working_days__contains=[day])
-        & Q(start_working_hr__lte=time)
-        & Q(end_working_hr__gte=time)
-    ).exclude(appointments__schedule_date=selected_date)
+        working_days__contains=[day],
+        start_working_hr__lte=time,
+        end_working_hr__gte=added_time,
+    ).exclude(appointments__schedule_date__range=(date_obj, added_time))
 
     high_priority_doctor = doctors_not_in_appointments.filter(priority="high")
     if high_priority_doctor:
@@ -80,6 +89,12 @@ def time_slots(request):
         return Response(
             {"status": False, "message": "Invalid date format. Please use '%Y-%m-%d'."}
         )
+
+    parsed_date = datetime.strptime(date, "%Y-%m-%d")
+
+    today = datetime.today().date()
+    if not parsed_date.date() >= today:
+        return Response({"status":False, "message": "The provided date is not valid."}, 400)
 
     data = get_available_time_slots(date)
     return Response({"status": True, "data": data})
@@ -209,12 +224,14 @@ def schedule_meeting(request):
                 res_dr = get_available_doctor(patient_schedule_date)
 
                 try:
+                    print("res_dr -- ", res_dr)
                     doctor_obj = Doctors.objects.get(pk=res_dr)
                 except Exception as e:
                     return Response(
                         {
                             "status": False,
                             "message": "We couldn't find any available doctors. Please make another selection.",
+                            "detail": str(e),
                         },
                         400,
                     )
@@ -283,6 +300,30 @@ def reschedule_meeting(request):
             200,
         )
 
+
+@token_required
+@api_view(["PATCH"])
+def cancel_meeting(request):
+    if request.method == "PATCH":
+        appointment_id = request.data.get("appointment_id")
+        if not appointment_id:
+            return Response({"status": False, "message": "Appointment id required"}, 400)
+
+        try:
+            appointment_obj = Appointments.objects.get(pk=appointment_id)
+        except:
+            return Response({"status": False, "message": "Appointment not found"}, 404)
+
+        appointment_obj.status = "cancelled"
+        appointment_obj.save()
+
+        return Response(
+            {
+                "status": True,
+                "message": "Appointment has been successfully cancelled",
+            },
+            200
+        )
 
 class AppointmentView(DoctorViewMixin):
     def get(self, request):

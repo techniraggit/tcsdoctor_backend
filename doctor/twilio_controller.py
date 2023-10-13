@@ -1,11 +1,10 @@
-# twilio_controller.py
-from twilio.jwt.access_token import AccessToken
-from twilio.jwt.access_token.grants import VideoGrant
-from django.conf import settings
+import uuid
+from django.http import JsonResponse
+from utilities.video.auth import get_access_token
 
+def create_video_room(request):
+    room_name = f"consult_{uuid.uuid4()}"
+    identity = str(uuid.uuid4())
+    token = get_access_token(identity=identity, room_name=room_name)
 
-def generate_video_access_token(identity, room_name):
-    # Create an AccessToken for the participant
-    token = AccessToken(settings.TWILIO_ACCOUNT_SID, identity)
-    token.add_grant(VideoGrant(room=room_name))
-    return token.to_jwt()
+    return JsonResponse({"token": token, "room_name": room_name})

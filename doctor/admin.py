@@ -30,7 +30,7 @@ class AppointmentsAdmin(admin.ModelAdmin):
         "id",
         "patient",
         "doctor",
-        "schedule_date",
+        # "schedule_date",
         "status",
         "meeting_link",
     ]
@@ -40,11 +40,12 @@ class AppointmentsAdmin(admin.ModelAdmin):
 @admin.register(Doctors)
 class DoctorsAdmin(admin.ModelAdmin):
     list_display = [
+        "id",
         "user",
         "clinic_name",
         "clinic_contact_no",
-        "start_working_hr",
-        "end_working_hr",
+        # "start_working_hr",
+        # "end_working_hr",
         "priority",
         "working_days",
         "is_active",

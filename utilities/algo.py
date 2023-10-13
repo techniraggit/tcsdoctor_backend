@@ -8,26 +8,35 @@ def get_available_time_slots(selected_date):
     """get available time slots for the selected date"""
     date_obj = datetime.strptime(selected_date, "%Y-%m-%d")
     day = date_obj.strftime("%A")
+    date = date_obj.date()
+    current_date = datetime.now().date()
+    current_time = datetime.now().time().replace(microsecond=0)
 
-    # Get the list of doctors who meet the criteria, as you did in your previous function
-    doctors_not_in_appointments = Doctors.objects.filter(
-        Q(Q(appointments__status="completed") | Q(appointments__isnull=True))
-        & Q(working_days__contains=[day])
-    )
+    doctors = Doctors.objects.filter(
+            Q(Q(appointments__status="completed") | Q(appointments__isnull=True)) &
+            Q(working_days__contains=[day])).distinct()
 
-    aggregated_data = doctors_not_in_appointments.aggregate(
-        min_start_time=Min("start_working_hr"), max_end_time=Max("end_working_hr")
-    )
+    doctor_ids = list(doctors.values_list("user__id", flat=True))
 
-    start_time = aggregated_data["min_start_time"]
-    end_time = aggregated_data["max_end_time"]
+    day_time_distance = doctors.aggregate(min_time=Min("start_working_hr"), max_time=Max("end_working_hr"))
+
+    day_start_time = day_time_distance.get("min_time")
+    day_end_time = day_time_distance.get("max_time")
+
+    if current_date == date:
+        day_start_time = current_time
+
+    start_time = day_start_time
+    end_time = day_end_time
 
     # Assuming your time slot duration is 15 minutes
     slot_duration = timedelta(minutes=settings.MEETING_DURATION)
 
     # Define the start and end times for the working day
-    start_time = time(9, 0)  # Replace with the desired start time
-    end_time = time(22, 0)  # Replace with the desired end time
+    start_time = time(
+        start_time.hour, start_time.minute
+    )  # Replace with the desired start time
+    end_time = time(end_time.hour, end_time.minute)  # Replace with the desired end time
 
     # Generate available time slots within the working hours
     current_time = datetime.combine(date_obj, start_time)
@@ -36,11 +45,8 @@ def get_available_time_slots(selected_date):
     available_time_slots = []
 
     while current_time + slot_duration <= end_of_day:
-        # Check if the current time slot is available
-        if not doctors_not_in_appointments.filter(
-            Q(start_working_hr__lte=current_time.time())
-            & Q(end_working_hr__gte=(current_time + slot_duration).time())
-        ).exists():
+
+        if not doctors.filter( Q(start_working_hr__gte=current_time.time()) & Q(end_working_hr__lte=(current_time + slot_duration).time())).exists():
             available_time_slots.append(
                 {
                     "start_time": current_time.time().strftime("%H:%M"),
