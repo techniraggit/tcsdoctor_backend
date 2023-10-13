@@ -181,6 +181,8 @@ JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM")
 TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
 TWILIO_AUTH_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN")
 TWILIO_NUMBER = os.environ.get("TWILIO_NUMBER")
+TWILIO_API_KEY = os.environ.get("TWILIO_API_KEY")
+TWILIO_API_SECRET = os.environ.get("TWILIO_API_SECRET")
 
 # FALCON EMAIL
 IS_SMTP = os.environ.get("IS_SMTP", "").lower() == "true"
