@@ -8,7 +8,7 @@ from doctor.models import Doctors, Appointments
 from datetime import datetime
 
 # current_datetime = timezone.now()
-selected_date = "2023-10-13"
+selected_date = "2023-10-16"
 
 def home(selected_date):
     date_obj = datetime.strptime(selected_date, "%Y-%m-%d")
