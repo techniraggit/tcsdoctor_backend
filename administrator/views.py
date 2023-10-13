@@ -35,6 +35,7 @@ from django.db.models import (
 from django.db import transaction
 from django.forms.models import model_to_dict
 from datetime import datetime
+from doctor.models import DoctorAvailability
 
 
 # Create your views here.
@@ -80,13 +81,21 @@ class DoctorView(AdminViewMixin):
         clinic_name = request.data.get("clinic_name")
         clinic_address = request.data.get("clinic_address")
         clinic_contact_no = request.data.get("clinic_contact_no")
-        start_working_hr = request.data.get("start_working_hr")
-        end_working_hr = request.data.get("end_working_hr")
-        working_days = request.data.get("working_days", "").split(",")
         priority = request.data.get("priority")
         summary = request.data.get("summary")
         appointment_charges = request.data.get("appointment_charges")
         salary = request.data.get("salary")
+
+        availability = request.data.get("availability")
+
+        # start_working_hr = request.data.get("start_working_hr")
+        # end_working_hr = request.data.get("end_working_hr")
+        # working_days = request.data.get("working_days", "").split(",")
+
+        # print("availability === = = = ", availability, len(availability))
+        # for avail in availability:
+            # print(avail)
+        # return Response({"status":"00000"})
 
         if not all(
             [
@@ -98,9 +107,10 @@ class DoctorView(AdminViewMixin):
                 education,
                 clinic_name,
                 clinic_address,
-                start_working_hr,
-                end_working_hr,
-                working_days,
+                availability,
+                # start_working_hr,
+                # end_working_hr,
+                # working_days,
                 priority,
             ]
         ):
@@ -126,32 +136,31 @@ class DoctorView(AdminViewMixin):
                 400,
             )
 
-        if not is_valid_date(start_working_hr, "%H:%M") or not is_valid_date(
-            end_working_hr, "%H:%M"
-        ):
-            return Response(
-                {
-                    "status": False,
-                    "message": "Invalid time format. Please use a valid format for the time. (HH:MM)",
-                },
-                400,
-            )
-
-        if not validate_time(start_working_hr, end_working_hr):
-            return Response(
-                {
-                    "status": False,
-                    "message": "Invalid combination of start working hours and end working hours",
-                },
-                400,
-            )
-
-        if not isinstance(working_days, list):
+        if not isinstance(availability, list):
             return Response(
                 {"status": False, "message": "Working days should be in Array"}, 400
             )
 
-        working_days = [working_day.strip() for working_day in working_days]
+        for avail in availability:
+            if not is_valid_date(avail.get("start_working_hr"), "%H:%M") or not is_valid_date(
+                avail.get("end_working_hr"), "%H:%M"
+            ):
+                return Response(
+                    {
+                        "status": False,
+                        "message": "Invalid time format. Please use a valid format for the time. (HH:MM)",
+                    },
+                    400,
+                )
+
+            if not validate_time(avail.get("start_working_hr"), avail.get("end_working_hr")):
+                return Response(
+                    {
+                        "status": False,
+                        "message": "Invalid combination of start working hours and end working hours",
+                    },
+                    400,
+                )
 
         try:
             salary = float(salary)
@@ -207,14 +216,30 @@ class DoctorView(AdminViewMixin):
                     clinic_name=clinic_name,
                     clinic_address=clinic_address,
                     clinic_contact_no=clinic_contact_no,
-                    start_working_hr=start_working_hr,
-                    end_working_hr=end_working_hr,
-                    working_days=working_days,
+                    # start_working_hr=start_working_hr,
+                    # end_working_hr=end_working_hr,
+                    # working_days=working_days,
                     priority=priority,
                     summary=summary,
                     appointment_charges=appointment_charges,
                     salary=salary,
                 )
+
+                doctor_availability_list = []
+                for avail in availability:
+                    working_days = (avail["working_days"]).split(",")
+                    working_days = [working_day.strip() for working_day in working_days]
+                    doctor_availability_list.append(
+                        DoctorAvailability(
+                            doctor = doctor_obj,
+                            start_working_hr = avail["start_working_hr"],
+                            end_working_hr = avail["end_working_hr"],
+                            working_days = working_days,
+                        )
+                    )
+                DoctorAvailability.objects.bulk_create(doctor_availability_list)
+
+
                 sms_status = send_sms(user_obj.phone_number, WELCOME)
                 if not sms_status:
                     return Response(

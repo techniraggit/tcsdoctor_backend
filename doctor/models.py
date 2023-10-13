@@ -33,9 +33,6 @@ class Doctors(DateTimeFieldMixin):
     clinic_address = models.TextField()
     clinic_contact_no = models.CharField(max_length=15, null=True, blank=True)
 
-    # start_working_hr = models.TimeField()
-    # end_working_hr = models.TimeField()
-    working_days = ArrayField(models.TextField())
     priority = models.CharField(max_length=20, choices=priority_choices)
 
     summary = models.TextField(null=True, blank=True)
@@ -54,6 +51,7 @@ class DoctorAvailability(DateTimeFieldMixin):
     doctor = models.ForeignKey(Doctors, on_delete=models.CASCADE, related_name="doctor_availability")
     start_working_hr = models.TimeField()
     end_working_hr = models.TimeField()
+    working_days = ArrayField(models.TextField())
 
     class Meta:
         db_table = "doctor_availability"
@@ -148,14 +146,14 @@ APPOINTMENT_STATUS_CHOICES = (
 
 
 class Appointments(DateTimeFieldMixin):
-    token = models.UUIDField(default=uuid.uuid4)
+    appointment_id = models.AutoField(primary_key=True, editable=False)
     patient = models.ForeignKey(Patients, on_delete=models.CASCADE)
     doctor = models.ForeignKey(Doctors, on_delete=models.CASCADE)
     date = models.DateField()
     time = models.TimeField()
     slot_key = models.CharField(max_length=5)
     room_id=models.CharField(max_length=50)
-    free = models.IntegerField()
+    no_cost_consult = models.IntegerField(default=0)
     status = models.CharField(
         max_length=50, choices=APPOINTMENT_STATUS_CHOICES, default="pending"
     )

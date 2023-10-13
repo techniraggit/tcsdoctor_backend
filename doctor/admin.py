@@ -27,14 +27,16 @@ class UsersAdmin(admin.ModelAdmin):
 @admin.register(Appointments)
 class AppointmentsAdmin(admin.ModelAdmin):
     list_display = [
-        "id",
+        "appointment_id",
         "patient",
         "doctor",
-        # "schedule_date",
         "status",
         "meeting_link",
+        "no_cost_consult",
     ]
-    search_fields = ["id", "status"]
+    search_fields = ["appointment_id", "status"]
+    list_filter = ["status"]
+
 
 
 @admin.register(Doctors)
@@ -44,11 +46,19 @@ class DoctorsAdmin(admin.ModelAdmin):
         "user",
         "clinic_name",
         "clinic_contact_no",
-        # "start_working_hr",
-        # "end_working_hr",
         "priority",
-        "working_days",
         "is_active",
     ]
     list_filter = ["is_active"]
     search_fields = ["user_id", "user__email", "user__phone_number", "clinic_name"]
+
+@admin.register(DoctorAvailability)
+class DoctorAvailabilityAdmin(admin.ModelAdmin):
+    list_display = [
+        "doctor",
+        "start_working_hr",
+        "end_working_hr",
+        "working_days",
+    ]
+
+    search_fields = ["doctor__user__id"]
