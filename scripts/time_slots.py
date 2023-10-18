@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+from django.core.cache import cache
 from project_setup import *
 from django.utils import timezone
 from django.db.models import Q
@@ -9,13 +11,12 @@ from datetime import datetime
 from utilities import TIME_SLOTS
 
 
-# current_datetime = timezone.now()
-selected_date = "2023-10-16"
-# selected_date = "2023-09-27 01:58"
+selected_date = "2023/10/16"
+TIME_FORMATE = "%Y/%m/%d"
 
 
-def home(selected_date):
-    date_obj = datetime.strptime(selected_date, "%Y-%m-%d")
+def slots(selected_date):
+    date_obj = datetime.strptime(selected_date, TIME_FORMATE)
     day = date_obj.strftime("%A")
     date = date_obj.date()
     current_date = datetime.now().date()
@@ -26,8 +27,10 @@ def home(selected_date):
         & Q(doctor_availability__working_days__contains=[day])
     ).distinct()
 
+
     if not doctors:
-        return "No doctors available for this day"
+        return [], []
+    doctor_ids = list(doctors.values_list("user__id", flat=True))
 
     day_time_distance = doctors.aggregate(
         min_time=Min("doctor_availability__start_working_hr"),
@@ -64,15 +67,60 @@ def home(selected_date):
     # Filter the slots based on the specified time range
     appointments = Appointments.objects.all()
     filtered_slots = {}
+    key_ids = []
     for key, value in TIME_SLOTS.items():
         if start_minutes < int(value[:2]) * 60 + int(value[3:]) < end_minutes:
             filtered_slots[key] = value
-            filtered_slots["is_avail"] = appointments.filter(
-                slot_key=key,
-                date=date,
-                doctor__user__id__in=doctors.values_list("user__id", flat=True),
-            ).exists()
-    return filtered_slots
+            key_ids.append(key)
+            # filtered_slots["is_avail"] = appointments.filter(
+            #     slot_key=key,
+            #     date=date,
+            #     doctor__user__id__in=doctors.values_list("user__id", flat=True),
+            # ).exists()
+    return key_ids, doctor_ids
 
 
-print(home(selected_date))
+def get_timeout(date):
+    current_date = datetime.now()
+    future_date = datetime.strptime(date, TIME_FORMATE)
+    time_difference = (future_date - current_date).total_seconds()
+    return time_difference
+
+
+# time_out = timeout("2023-10-20")
+# print("time_out === ", time_out)
+
+# print(slots(selected_date))
+"""
+
+"2023-10-20":{
+"33": [1,2,3],
+"34": [4,5,6]
+}
+
+"""
+
+
+def next_dates(days=7):
+    date_list = [
+        (datetime.now() + timedelta(days=day)).strftime(TIME_FORMATE)
+        for day in range(days)
+    ]
+    return date_list
+
+def set_cache_data(date, keys, doctors):
+    for key in keys:
+        cache.set(
+            f"{date}_{key}", doctors, timeout=get_timeout(date)
+        )
+
+
+def UpdateAppointment():
+    dates = next_dates()
+    for date in dates:
+        keys, doctors = slots(date)
+        set_cache_data(date, keys, doctors)
+
+# UpdateAppointment()
+
+print(cache.get("2023/10/23_33"))

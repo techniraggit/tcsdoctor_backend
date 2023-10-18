@@ -13,4 +13,5 @@ urlpatterns = [
     path("patients", views.PatientView.as_view()),
     path("notifications", views.NotificationsView.as_view()),
     path("profile", views.ProfileView.as_view()),
+    path("consult", views.ConsultView.as_view()),
 ]

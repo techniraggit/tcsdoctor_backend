@@ -62,3 +62,8 @@ class DoctorAvailabilityAdmin(admin.ModelAdmin):
     ]
 
     search_fields = ["doctor__user__id"]
+
+
+@admin.register(NotePad)
+class NotePadAdmin(admin.ModelAdmin):
+    list_display = "room_name", "notepad"

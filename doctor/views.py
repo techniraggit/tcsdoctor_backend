@@ -6,6 +6,8 @@ from doctor.models import (  # Doctor Models
     Users,
     Patients,
     Appointments,
+    Consultation,
+    NotePad,
 )
 from doctor.serializers import (  # Doctor Serializers
     AppointmentsSerializer,
@@ -418,3 +420,29 @@ class NotificationsView(DoctorViewMixin):
             }
         ]
         return Response({"status": True, "notifications": data})
+
+
+class ConsultView(DoctorViewMixin):
+    def post(self, request):
+        notepad = request.data.get("notepad")
+        room_name = request.data.get("room_name")
+        if not all([notepad, room_name]):
+            return Response({"status": False, "message": "Required fields are missing"}, 400)
+        # try:
+        #     appointment_obj = Appointments.objects.get(room_name=room_name)
+        # except:
+        #     return Response({"status": False, "message": "Room not found"}, 404)
+        
+        try:
+            NotePad.objects.create(
+                room_name=room_name,
+                notepad = notepad
+            )
+            # Consultation.objects.create(
+            #     patient = appointment_obj.patient,
+            #     doctor = appointment_obj.doctor,
+            #     consult = notepad,
+            # )
+            return Response({"status": True, "message": "Your submission was successful"})
+        except Exception as e:
+            return Response({"status": False, "message": str(e)}, 400)

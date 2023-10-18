@@ -152,7 +152,7 @@ class Appointments(DateTimeFieldMixin):
     date = models.DateField()
     time = models.TimeField()
     slot_key = models.CharField(max_length=5)
-    room_id=models.CharField(max_length=50)
+    room_name=models.CharField(max_length=50)
     no_cost_consult = models.IntegerField(default=0)
     status = models.CharField(
         max_length=50, choices=APPOINTMENT_STATUS_CHOICES, default="pending"
@@ -173,6 +173,10 @@ class Consultation(DateTimeFieldMixin):
 
     class Meta:
         db_table = "consultations"
+
+class NotePad(DateTimeFieldMixin):
+    room_name = models.CharField(max_length=50)
+    notepad = models.TextField()
 
 
 class Feedbacks(DateTimeFieldMixin):
