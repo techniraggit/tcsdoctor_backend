@@ -7,7 +7,7 @@ from datetime import datetime, timedelta, time
 from doctor.models import Doctors, Appointments
 from datetime import datetime
 
-# current_datetime = timezone.now()
+
 selected_date = "2023-10-16"
 
 def home(selected_date):
