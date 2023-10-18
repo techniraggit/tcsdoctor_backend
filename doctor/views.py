@@ -422,7 +422,7 @@ class NotificationsView(DoctorViewMixin):
         return Response({"status": True, "notifications": data})
 
 
-class ConsultView(DoctorViewMixin):
+class ConsultView(APIView):
     def post(self, request):
         notepad = request.data.get("notepad")
         room_name = request.data.get("room_name")
