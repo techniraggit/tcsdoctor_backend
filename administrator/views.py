@@ -51,20 +51,21 @@ def validate_time(start_time, end_time):
         return False
 
 
+import json
+
+
 class DoctorView(AdminViewMixin):
     def get(self, request):
         id = request.GET.get("id")
         if id:
             try:
-                query_set = Doctors.objects.select_related(
-                    "user").get(user__id=id)
+                query_set = Doctors.objects.select_related("user").get(user__id=id)
                 data = DoctorSerializer(query_set).data
                 return Response({"status": True, "data": data}, 200)
             except:
                 data = {}
                 return Response({"status": True, "data": data}, 200)
-        query_set = Doctors.objects.select_related(
-            "user").all().order_by("-created")
+        query_set = Doctors.objects.select_related("user").all().order_by("-created")
         data = DoctorSerializer(query_set, many=True).data
         return Response({"status": True, "data": data}, 200)
 
@@ -85,17 +86,7 @@ class DoctorView(AdminViewMixin):
         summary = request.data.get("summary")
         appointment_charges = request.data.get("appointment_charges")
         salary = request.data.get("salary")
-
         availability = request.data.get("availability")
-
-        # start_working_hr = request.data.get("start_working_hr")
-        # end_working_hr = request.data.get("end_working_hr")
-        # working_days = request.data.get("working_days", "").split(",")
-
-        # print("availability === = = = ", availability, len(availability))
-        # for avail in availability:
-            # print(avail)
-        # return Response({"status":"00000"})
 
         if not all(
             [
@@ -108,9 +99,6 @@ class DoctorView(AdminViewMixin):
                 clinic_name,
                 clinic_address,
                 availability,
-                # start_working_hr,
-                # end_working_hr,
-                # working_days,
                 priority,
             ]
         ):
@@ -136,15 +124,21 @@ class DoctorView(AdminViewMixin):
                 400,
             )
 
-        if not isinstance(availability, list):
+        try:
+            availability = json.loads(availability)
+        except:
             return Response(
-                {"status": False, "message": "Working days should be in Array"}, 400
+                {
+                    "status": False,
+                    "message": "The format for the appointment is not valid",
+                },
+                400,
             )
 
         for avail in availability:
-            if not is_valid_date(avail.get("start_working_hr"), "%H:%M") or not is_valid_date(
-                avail.get("end_working_hr"), "%H:%M"
-            ):
+            if not is_valid_date(
+                avail.get("start_working_hr"), "%H:%M"
+            ) or not is_valid_date(avail.get("end_working_hr"), "%H:%M"):
                 return Response(
                     {
                         "status": False,
@@ -153,7 +147,9 @@ class DoctorView(AdminViewMixin):
                     400,
                 )
 
-            if not validate_time(avail.get("start_working_hr"), avail.get("end_working_hr")):
+            if not validate_time(
+                avail.get("start_working_hr"), avail.get("end_working_hr")
+            ):
                 return Response(
                     {
                         "status": False,
@@ -216,9 +212,6 @@ class DoctorView(AdminViewMixin):
                     clinic_name=clinic_name,
                     clinic_address=clinic_address,
                     clinic_contact_no=clinic_contact_no,
-                    # start_working_hr=start_working_hr,
-                    # end_working_hr=end_working_hr,
-                    # working_days=working_days,
                     priority=priority,
                     summary=summary,
                     appointment_charges=appointment_charges,
@@ -231,14 +224,13 @@ class DoctorView(AdminViewMixin):
                     working_days = [working_day.strip() for working_day in working_days]
                     doctor_availability_list.append(
                         DoctorAvailability(
-                            doctor = doctor_obj,
-                            start_working_hr = avail["start_working_hr"],
-                            end_working_hr = avail["end_working_hr"],
-                            working_days = working_days,
+                            doctor=doctor_obj,
+                            start_working_hr=avail["start_working_hr"],
+                            end_working_hr=avail["end_working_hr"],
+                            working_days=working_days,
                         )
                     )
                 DoctorAvailability.objects.bulk_create(doctor_availability_list)
-
 
                 sms_status = send_sms(user_obj.phone_number, WELCOME)
                 if not sms_status:
@@ -282,13 +274,11 @@ class DoctorView(AdminViewMixin):
         clinic_name = request.data.get("clinic_name")
         clinic_address = request.data.get("clinic_address")
         clinic_contact_no = request.data.get("clinic_contact_no")
-        start_working_hr = request.data.get("start_working_hr")
-        end_working_hr = request.data.get("end_working_hr")
-        working_days = request.data.get("working_days", "").split(",")
         priority = request.data.get("priority")
         summary = request.data.get("summary")
         appointment_charges = request.data.get("appointment_charges")
         salary = request.data.get("salary")
+        availability = request.data.get("availability")
 
         if not all(
             [
@@ -301,9 +291,7 @@ class DoctorView(AdminViewMixin):
                 education,
                 clinic_name,
                 clinic_address,
-                start_working_hr,
-                end_working_hr,
-                working_days,
+                availability,
                 priority,
             ]
         ):
@@ -329,23 +317,57 @@ class DoctorView(AdminViewMixin):
                 400,
             )
 
-        if not is_valid_date(start_working_hr, "%H:%M") or not is_valid_date(
-            end_working_hr, "%H:%M"
-        ):
+        try:
+            availability = json.loads(availability)
+        except:
             return Response(
                 {
                     "status": False,
-                    "message": "Invalid time format. Please use a valid format for the time. (HH:MM)",
+                    "message": "The format for the appointment is not valid",
                 },
                 400,
             )
 
-        if not isinstance(working_days, list):
-            return Response(
-                {"status": False, "message": "Days off should be in Array"}, 400
-            )
+        for avail in availability:
+            if not is_valid_date(
+                avail.get("start_working_hr"), "%H:%M"
+            ) or not is_valid_date(avail.get("end_working_hr"), "%H:%M"):
+                return Response(
+                    {
+                        "status": False,
+                        "message": "Invalid time format. Please use a valid format for the time. (HH:MM)",
+                    },
+                    400,
+                )
 
-        working_days = [working_day.strip() for working_day in working_days]
+            if not validate_time(
+                avail.get("start_working_hr"), avail.get("end_working_hr")
+            ):
+                return Response(
+                    {
+                        "status": False,
+                        "message": "Invalid combination of start working hours and end working hours",
+                    },
+                    400,
+                )
+
+        # if not is_valid_date(start_working_hr, "%H:%M") or not is_valid_date(
+        #     end_working_hr, "%H:%M"
+        # ):
+        #     return Response(
+        #         {
+        #             "status": False,
+        #             "message": "Invalid time format. Please use a valid format for the time. (HH:MM)",
+        #         },
+        #         400,
+        #     )
+
+        # if not isinstance(working_days, list):
+        #     return Response(
+        #         {"status": False, "message": "Days off should be in Array"}, 400
+        #     )
+
+        # working_days = [working_day.strip() for working_day in working_days]
 
         try:
             salary = float(salary)
@@ -377,8 +399,7 @@ class DoctorView(AdminViewMixin):
 
         try:
             user_obj = User.objects.get(id=id)
-            doctor_obj = Doctors.objects.select_related(
-                "user").get(user__id=id)
+            doctor_obj = Doctors.objects.select_related("user").get(user__id=id)
 
         except Doctors.DoesNotExist:
             return Response(
@@ -427,14 +448,27 @@ class DoctorView(AdminViewMixin):
                 doctor_obj.clinic_name = clinic_name
                 doctor_obj.clinic_address = clinic_address
                 doctor_obj.clinic_contact_no = clinic_contact_no
-                doctor_obj.start_working_hr = start_working_hr
-                doctor_obj.end_working_hr = end_working_hr
-                doctor_obj.working_days = working_days
+
                 doctor_obj.priority = priority
                 doctor_obj.summary = summary
                 doctor_obj.appointment_charges = appointment_charges
                 doctor_obj.salary = salary
                 doctor_obj.save()
+
+                for avail in availability:
+                    working_days = (avail["working_days"]).split(",")
+                    working_days = [working_day.strip() for working_day in working_days]
+                    start_working_hr = avail["start_working_hr"]
+                    end_working_hr = avail["end_working_hr"]
+                    id = avail["id"]
+                    try:
+                        doctor_availability = DoctorAvailability.objects.get(pk=id)
+                        doctor_availability.working_days = working_days
+                        doctor_availability.start_working_hr = start_working_hr
+                        doctor_availability.end_working_hr = end_working_hr
+                        doctor_availability.save()
+                    except:
+                        continue
             return Response(
                 {
                     "status": True,
@@ -682,7 +716,7 @@ class DownloadReportView(AdminViewMixin):
                 "SEP",
                 "OCT",
                 "NOV",
-                "DEC"
+                "DEC",
             ]
 
             worksheet.append(headers)
@@ -692,108 +726,131 @@ class DownloadReportView(AdminViewMixin):
                     doctor_ids = doctor_ids.split(",")
                     ids = [int(i) for i in doctor_ids]
                 except:
-                    return Response({"status": False, "message": "Please ensure that the IDs are provided as a comma-separated list of integers."}, 400)
+                    return Response(
+                        {
+                            "status": False,
+                            "message": "Please ensure that the IDs are provided as a comma-separated list of integers.",
+                        },
+                        400,
+                    )
 
-                row_query_set = Appointments.objects.filter(doctor__user__id__in=ids).order_by("doctor__user__created")
+                row_query_set = Appointments.objects.filter(
+                    doctor__user__id__in=ids
+                ).order_by("doctor__user__created")
             else:
-                row_query_set = Appointments.objects.all().order_by("doctor__user__created")
+                row_query_set = Appointments.objects.all().order_by(
+                    "doctor__user__created"
+                )
 
             queryset = row_query_set.values(
-                'doctor__user__first_name',
-                'doctor__user__email',
-                'doctor__user__phone_number',
+                "doctor__user__first_name",
+                "doctor__user__email",
+                "doctor__user__phone_number",
             ).annotate(
                 january=Sum(
                     Case(
                         When(schedule_date__month=1, then=1),
                         default=0,
-                        output_field=IntegerField()
+                        output_field=IntegerField(),
                     )
                 ),
                 february=Sum(
                     Case(
                         When(schedule_date__month=2, then=1),
                         default=0,
-                        output_field=IntegerField()
+                        output_field=IntegerField(),
                     )
                 ),
                 march=Sum(
                     Case(
                         When(schedule_date__month=3, then=1),
                         default=0,
-                        output_field=IntegerField()
+                        output_field=IntegerField(),
                     )
                 ),
                 april=Sum(
                     Case(
                         When(schedule_date__month=4, then=1),
                         default=0,
-                        output_field=IntegerField()
+                        output_field=IntegerField(),
                     )
                 ),
                 may=Sum(
                     Case(
                         When(schedule_date__month=5, then=1),
                         default=0,
-                        output_field=IntegerField()
+                        output_field=IntegerField(),
                     )
                 ),
                 june=Sum(
                     Case(
                         When(schedule_date__month=6, then=1),
                         default=0,
-                        output_field=IntegerField()
+                        output_field=IntegerField(),
                     )
                 ),
                 july=Sum(
                     Case(
                         When(schedule_date__month=7, then=1),
                         default=0,
-                        output_field=IntegerField()
+                        output_field=IntegerField(),
                     )
                 ),
                 august=Sum(
                     Case(
                         When(schedule_date__month=8, then=1),
                         default=0,
-                        output_field=IntegerField()
+                        output_field=IntegerField(),
                     )
                 ),
                 september=Sum(
                     Case(
                         When(schedule_date__month=9, then=1),
                         default=0,
-                        output_field=IntegerField()
+                        output_field=IntegerField(),
                     )
                 ),
                 october=Sum(
                     Case(
                         When(schedule_date__month=10, then=1),
                         default=0,
-                        output_field=IntegerField()
+                        output_field=IntegerField(),
                     )
                 ),
                 november=Sum(
                     Case(
                         When(schedule_date__month=11, then=1),
                         default=0,
-                        output_field=IntegerField()
+                        output_field=IntegerField(),
                     )
                 ),
                 december=Sum(
                     Case(
                         When(schedule_date__month=12, then=1),
                         default=0,
-                        output_field=IntegerField()
+                        output_field=IntegerField(),
                     )
-                )
+                ),
             )
 
             for item in queryset:
-                row = [item['doctor__user__first_name'], item['doctor__user__email'], item['doctor__user__phone_number'],
-                       item['january'], item['february'], item['march'], item['april'],
-                       item['may'], item['june'], item['july'], item['august'],
-                       item['september'], item['october'], item['november'], item['december']]
+                row = [
+                    item["doctor__user__first_name"],
+                    item["doctor__user__email"],
+                    item["doctor__user__phone_number"],
+                    item["january"],
+                    item["february"],
+                    item["march"],
+                    item["april"],
+                    item["may"],
+                    item["june"],
+                    item["july"],
+                    item["august"],
+                    item["september"],
+                    item["october"],
+                    item["november"],
+                    item["december"],
+                ]
                 worksheet.append(row)
 
             worksheet.column_dimensions["A"].width = 15
@@ -824,8 +881,11 @@ class DownloadReportView(AdminViewMixin):
 
 class AppointmentListView(AdminViewMixin):
     def get(self, request):
-        query_set = Appointments.objects.all().select_related(
-            "doctor", "patient").order_by("-schedule_date")
+        query_set = (
+            Appointments.objects.all()
+            .select_related("doctor", "patient")
+            .order_by("-schedule_date")
+        )
         data = AppointmentsSerializer(query_set, many=True).data
         return Response({"status": True, "data": data}, 200)
 
@@ -842,7 +902,10 @@ class AppointmentListView(AdminViewMixin):
         try:
             app_obj = Appointments.objects.get(pk=id)
         except Exception as e:
-            return Response({"status": False, "message": "Appointment not found", "detail": str(e)}, 404)
+            return Response(
+                {"status": False, "message": "Appointment not found", "detail": str(e)},
+                404,
+            )
 
         try:
             app_obj.status = status
@@ -852,6 +915,5 @@ class AppointmentListView(AdminViewMixin):
             )
         except Exception as e:
             return Response(
-                {"status": False, "message": "Something went wrong",
-                    "detail": str(e)}
+                {"status": False, "message": "Something went wrong", "detail": str(e)}
             )
