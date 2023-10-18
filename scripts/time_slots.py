@@ -83,7 +83,7 @@ def slots(selected_date):
 def get_timeout(date):
     current_date = datetime.now()
     future_date = datetime.strptime(date, TIME_FORMATE)
-    time_difference = (future_date - current_date).total_seconds()
+    time_difference = ((future_date+timedelta(days=1)) - current_date).total_seconds()
     return time_difference
 
 
@@ -109,18 +109,33 @@ def next_dates(days=7):
     return date_list
 
 def set_cache_data(date, keys, doctors):
+    data_dict = {}
+    print(date, keys)
     for key in keys:
-        cache.set(
-            f"{date}_{key}", doctors, timeout=get_timeout(date)
-        )
+        data_dict[key] = doctors
+        cache.set(date, data_dict, timeout=get_timeout(date))
 
 
 def UpdateAppointment():
     dates = next_dates()
     for date in dates:
+        print(date)
         keys, doctors = slots(date)
         set_cache_data(date, keys, doctors)
 
-# UpdateAppointment()
+def ShowAppointments(date, time_):
+    found_key = None
 
-print(cache.get("2023/10/23_33"))
+    for key, value in TIME_SLOTS.items():
+        if value == time_:
+            found_key = key
+            break
+
+    data = (cache.get(date))
+    return data.get(found_key) if data else None
+
+
+# UpdateAppointment()
+date_ = "2023/10/19"
+dd = ShowAppointments(date_, "15:45")
+print(dd)

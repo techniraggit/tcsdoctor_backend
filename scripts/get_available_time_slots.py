@@ -39,7 +39,7 @@ def home(selected_date):
     end_time = day_end_time
 
     # Assuming your time slot duration is 15 minutes
-    slot_duration = timedelta(minutes=settings.MEETING_DURATION)
+    slot_duration = timedelta(minutes=settings.SLOT_DURATION)
 
     # Define the start and end times for the working day
     start_time = time(
