@@ -10,10 +10,7 @@ from doctor.models import Doctors, Appointments
 from datetime import datetime
 from utilities import TIME_SLOTS
 
-
-selected_date = "2023/10/16"
 TIME_FORMATE = "%Y/%m/%d"
-
 
 def slots(selected_date):
     date_obj = datetime.strptime(selected_date, TIME_FORMATE)
@@ -47,10 +44,7 @@ def slots(selected_date):
     end_time = day_end_time
 
     # Define the start and end times for the working day
-    start_time = time(
-        start_time.hour, start_time.minute
-    )  # Replace with the desired start time
-    # Replace with the desired end time
+    start_time = time(start_time.hour, start_time.minute)
     end_time = time(end_time.hour, end_time.minute)
 
     # Generate available time slots within the working hours
@@ -72,11 +66,6 @@ def slots(selected_date):
         if start_minutes < int(value[:2]) * 60 + int(value[3:]) < end_minutes:
             filtered_slots[key] = value
             key_ids.append(key)
-            # filtered_slots["is_avail"] = appointments.filter(
-            #     slot_key=key,
-            #     date=date,
-            #     doctor__user__id__in=doctors.values_list("user__id", flat=True),
-            # ).exists()
     return key_ids, doctor_ids
 
 
@@ -87,20 +76,6 @@ def get_timeout(date):
     return time_difference
 
 
-# time_out = timeout("2023-10-20")
-# print("time_out === ", time_out)
-
-# print(slots(selected_date))
-"""
-
-"2023-10-20":{
-"33": [1,2,3],
-"34": [4,5,6]
-}
-
-"""
-
-
 def next_dates(days=7):
     date_list = [
         (datetime.now() + timedelta(days=day)).strftime(TIME_FORMATE)
@@ -108,9 +83,9 @@ def next_dates(days=7):
     ]
     return date_list
 
+
 def set_cache_data(date, keys, doctors):
     data_dict = {}
-    print(date, keys)
     for key in keys:
         data_dict[key] = doctors
         cache.set(date, data_dict, timeout=get_timeout(date))
@@ -119,23 +94,51 @@ def set_cache_data(date, keys, doctors):
 def UpdateAppointment():
     dates = next_dates()
     for date in dates:
-        print(date)
         keys, doctors = slots(date)
         set_cache_data(date, keys, doctors)
 
-def ShowAppointments(date, time_):
+
+def FindAvailableSlots(date):
+    data = (cache.get(date))
+    result_dict = {}
+
+    for key in data.keys():
+        if key in TIME_SLOTS:
+            result_dict[key] = (TIME_SLOTS.get(key))
+    return result_dict
+
+
+def FindAvailableDoctor(date, time):
     found_key = None
 
     for key, value in TIME_SLOTS.items():
-        if value == time_:
+        if value == time:
             found_key = key
             break
+    data = {found_key: (cache.get(date)).get(found_key)}
+    return data
 
-    data = (cache.get(date))
-    return data.get(found_key) if data else None
+
+def UpdateSlot(date, slot_dict, id):
+    key = list(slot_dict.keys())[0]
+
+    if key in slot_dict:
+        slot_dict[key] = [x for x in slot_dict[key] if x != id]
+
+    cache.set(
+        date, slot_dict
+    )
 
 
-# UpdateAppointment()
-date_ = "2023/10/19"
-dd = ShowAppointments(date_, "15:45")
-print(dd)
+if __name__ == "__main__":
+    date_ = "2023/10/25"
+    time_ = "22:00"
+    slot_ = {88: [2, 3, 4, 5]}
+    id_ = 4
+    # UpdateAppointment()
+    # print(FindAvailableSlots(date_))
+    drs = FindAvailableDoctor(date_, time_)
+    print("drs === ", drs)
+    # dr_id = Doctors.objects.filter(user__id__in=list(drs.values())[0]).order_by("priority").first().user.id
+    # print(dr_id)
+    # UpdateSlot(date_, drs, dr_id)
