@@ -67,3 +67,12 @@ class DoctorAvailabilityAdmin(admin.ModelAdmin):
 @admin.register(NotePad)
 class NotePadAdmin(admin.ModelAdmin):
     list_display = "room_name", "notepad"
+
+@admin.register(TimeSlot)
+class TimeSlotAdmin(admin.ModelAdmin):
+    list_display = ["id", "start_time"]
+
+
+@admin.register(Availability)
+class AvailabilityAdmin(admin.ModelAdmin):
+    list_display = ["doctor", "date", "time_slot", "is_available", "is_booked"]

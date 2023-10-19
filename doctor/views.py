@@ -8,6 +8,7 @@ from doctor.models import (  # Doctor Models
     Appointments,
     Consultation,
     NotePad,
+    Availability,
 )
 from doctor.serializers import (  # Doctor Serializers
     AppointmentsSerializer,
@@ -18,10 +19,11 @@ from doctor.serializers import (  # Doctor Serializers
 from utilities.algo import get_available_time_slots
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from utilities.utils import (
+from utilities.utils import (  # Utils
     is_valid_date,
     is_valid_email,
     is_valid_phone,
+    get_room_no,
 )
 from core.decorators import token_required
 from core.mixins import DoctorViewMixin
@@ -44,16 +46,14 @@ from django.forms.models import model_to_dict
 
 
 def get_available_doctor(selected_date):
-    print(f'selected_date; {selected_date}, {type(selected_date)}')
+    print(f"selected_date; {selected_date}, {type(selected_date)}")
     date_obj = datetime.strptime(selected_date, "%Y-%m-%d %H:%M")
 
-
-
-    print(f'date_obj: {date_obj}, {type(date_obj)}')
+    print(f"date_obj: {date_obj}, {type(date_obj)}")
     day = date_obj.strftime("%A")
     time = date_obj.time()
     date = date_obj.date()
-    added_time = (date_obj+ timedelta(minutes=15))
+    added_time = date_obj + timedelta(minutes=15)
 
     print("date ============= ", date)
     print("time ============= ", time)
@@ -96,7 +96,9 @@ def time_slots(request):
 
     today = datetime.today().date()
     if not parsed_date.date() >= today:
-        return Response({"status":False, "message": "The provided date is not valid."}, 400)
+        return Response(
+            {"status": False, "message": "The provided date is not valid."}, 400
+        )
 
     data = get_available_time_slots(date)
     return Response({"status": True, "data": data})
@@ -223,27 +225,43 @@ def schedule_meeting(request):
                 )
                 patient_obj.save()
 
-                res_dr = get_available_doctor(patient_schedule_date)
+                schedule_date_obj = datetime.strptime(
+                    patient_schedule_date, "%Y-%m-%d %H:%M"
+                )
 
-                try:
-                    print("res_dr -- ", res_dr)
-                    doctor_obj = Doctors.objects.get(pk=res_dr)
-                except Exception as e:
+                availability_obj = (
+                    Availability.objects.select_for_update()
+                    .filter(
+                        date=schedule_date_obj.date(),
+                        time_slot__start_time=schedule_date_obj.time(),
+                        is_available=True,
+                        is_booked=False,
+                    )
+                    .order_by("doctor__priority")
+                    .first()
+                )
+
+                if not availability_obj:
                     return Response(
                         {
                             "status": False,
                             "message": "We couldn't find any available doctors. Please make another selection.",
-                            "detail": str(e),
                         },
                         400,
                     )
 
                 appointment_obj = Appointments.objects.create(
                     patient=patient_obj,
-                    doctor=doctor_obj,
-                    schedule_date=patient_schedule_date,
+                    doctor=availability_obj.doctor,
+                    date=schedule_date_obj.date(),
+                    time=schedule_date_obj.time(),
+                    slot_key=availability_obj.id,
+                    room_name=get_room_no(),
+                    no_cost_consult=settings.NO_COST_CONSULT,
                     meeting_link="http://0.0.0.0:9000/backend/accounts/user/",
                 )
+                availability_obj.is_booked = True
+                availability_obj.save()
 
                 data = model_to_dict(appointment_obj)
 
@@ -309,7 +327,9 @@ def cancel_meeting(request):
     if request.method == "PATCH":
         appointment_id = request.data.get("appointment_id")
         if not appointment_id:
-            return Response({"status": False, "message": "Appointment id required"}, 400)
+            return Response(
+                {"status": False, "message": "Appointment id required"}, 400
+            )
 
         try:
             appointment_obj = Appointments.objects.get(pk=appointment_id)
@@ -324,8 +344,9 @@ def cancel_meeting(request):
                 "status": True,
                 "message": "Appointment has been successfully cancelled",
             },
-            200
+            200,
         )
+
 
 class AppointmentView(DoctorViewMixin):
     def get(self, request):
@@ -427,22 +448,28 @@ class ConsultView(APIView):
         notepad = request.data.get("notepad")
         room_name = request.data.get("room_name")
         if not all([notepad, room_name]):
-            return Response({"status": False, "message": "Required fields are missing"}, 400)
+            return Response(
+                {"status": False, "message": "Required fields are missing"}, 400
+            )
         # try:
         #     appointment_obj = Appointments.objects.get(room_name=room_name)
         # except:
         #     return Response({"status": False, "message": "Room not found"}, 404)
-        
+
         try:
-            NotePad.objects.create(
-                room_name=room_name,
-                notepad = notepad
-            )
+            NotePad.objects.create(room_name=room_name, notepad=notepad)
             # Consultation.objects.create(
             #     patient = appointment_obj.patient,
             #     doctor = appointment_obj.doctor,
             #     consult = notepad,
             # )
-            return Response({"status": True, "message": "Your submission was successful"})
+            return Response(
+                {"status": True, "message": "Your submission was successful"}
+            )
         except Exception as e:
             return Response({"status": False, "message": str(e)}, 400)
+
+
+class AppointmentViewTest(APIView):
+    def post(self, request):
+        pass

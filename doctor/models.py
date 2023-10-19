@@ -47,8 +47,11 @@ class Doctors(DateTimeFieldMixin):
     def __str__(self) -> str:
         return self.user.email
 
+
 class DoctorAvailability(DateTimeFieldMixin):
-    doctor = models.ForeignKey(Doctors, on_delete=models.CASCADE, related_name="doctor_availability")
+    doctor = models.ForeignKey(
+        Doctors, on_delete=models.CASCADE, related_name="doctor_availability"
+    )
     start_working_hr = models.TimeField()
     end_working_hr = models.TimeField()
     working_days = ArrayField(models.TextField())
@@ -146,7 +149,13 @@ APPOINTMENT_STATUS_CHOICES = (
 
 
 class TimeSlot(models.Model):
-    start_time = models.TimeField
+    start_time = models.TimeField()
+
+    class Meta:
+        db_table = "time_slot"
+
+    def __str__(self):
+        return f"{self.start_time}"
 
 
 class Availability(DateTimeFieldMixin):
@@ -156,6 +165,9 @@ class Availability(DateTimeFieldMixin):
     is_available = models.BooleanField(default=False)
     is_booked = models.BooleanField(default=False)
 
+    class Meta:
+        db_table = "availability"
+
 
 class Appointments(DateTimeFieldMixin):
     appointment_id = models.AutoField(primary_key=True, editable=False)
@@ -164,7 +176,7 @@ class Appointments(DateTimeFieldMixin):
     date = models.DateField()
     time = models.TimeField()
     slot_key = models.CharField(max_length=5)
-    room_name=models.CharField(max_length=50)
+    room_name = models.CharField(max_length=50)
     no_cost_consult = models.IntegerField(default=0)
     status = models.CharField(
         max_length=50, choices=APPOINTMENT_STATUS_CHOICES, default="pending"
@@ -185,6 +197,7 @@ class Consultation(DateTimeFieldMixin):
 
     class Meta:
         db_table = "consultations"
+
 
 class NotePad(DateTimeFieldMixin):
     room_name = models.CharField(max_length=50)
