@@ -145,6 +145,18 @@ APPOINTMENT_STATUS_CHOICES = (
 )
 
 
+class TimeSlot(models.Model):
+    start_time = models.TimeField
+
+
+class Availability(DateTimeFieldMixin):
+    doctor = models.ForeignKey(Doctors, on_delete=models.CASCADE)
+    date = models.DateField()
+    time_slot = models.ForeignKey(TimeSlot, on_delete=models.CASCADE)
+    is_available = models.BooleanField(default=False)
+    is_booked = models.BooleanField(default=False)
+
+
 class Appointments(DateTimeFieldMixin):
     appointment_id = models.AutoField(primary_key=True, editable=False)
     patient = models.ForeignKey(Patients, on_delete=models.CASCADE)
