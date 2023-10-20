@@ -60,7 +60,18 @@ class DoctorAvailability(DateTimeFieldMixin):
         db_table = "doctor_availability"
 
     def __str__(self) -> str:
-        return self.doctor
+        return self.doctor.user.email
+
+class DoctorLeave(DateTimeFieldMixin):
+    doctor = models.ForeignKey(Doctors, on_delete=models.CASCADE)
+    leave_date = models.DateField()
+    is_sanction = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "doctor_leave"
+    
+    def __str__(self):
+        return self.doctor.user.email
 
 
 class Users(DateTimeFieldMixin):
@@ -144,6 +155,7 @@ APPOINTMENT_STATUS_CHOICES = (
     ("pending", "Pending"),
     ("completed", "Completed"),
     ("rescheduled", "Rescheduled"),
+    ("free consult", "Free Consult"),
     ("cancelled", "Cancelled"),
 )
 
@@ -173,8 +185,7 @@ class Appointments(DateTimeFieldMixin):
     appointment_id = models.AutoField(primary_key=True, editable=False)
     patient = models.ForeignKey(Patients, on_delete=models.CASCADE)
     doctor = models.ForeignKey(Doctors, on_delete=models.CASCADE)
-    date = models.DateField()
-    time = models.TimeField()
+    schedule_date = models.DateTimeField()
     slot_key = models.CharField(max_length=5)
     room_name = models.CharField(max_length=50)
     no_cost_consult = models.IntegerField(default=0)

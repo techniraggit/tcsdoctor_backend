@@ -280,6 +280,25 @@ class DoctorView(AdminViewMixin):
         salary = request.data.get("salary")
         availability = request.data.get("availability")
 
+        print("id === ", id)
+        print("first_name === ", first_name)
+        print("last_name === ", last_name)
+        print("profile_image === ", profile_image)
+        print("email === ", email)
+        print("phone_number === ", phone_number)
+
+        print("specialization ==== ", specialization)
+        print("medical_license ==== ", medical_license)
+        print("education ==== ", education)
+        print("clinic_name ==== ", clinic_name)
+        print("clinic_address ==== ", clinic_address)
+        print("clinic_contact_no ==== ", clinic_contact_no)
+        print("priority ==== ", priority)
+        print("summary ==== ", summary)
+        print("appointment_charges ==== ", appointment_charges)
+        print("salary ==== ", salary)
+        print("availability ==== ", availability)
+
         if not all(
             [
                 id,

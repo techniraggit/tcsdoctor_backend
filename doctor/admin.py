@@ -76,3 +76,8 @@ class TimeSlotAdmin(admin.ModelAdmin):
 @admin.register(Availability)
 class AvailabilityAdmin(admin.ModelAdmin):
     list_display = ["doctor", "date", "time_slot", "is_available", "is_booked"]
+
+@admin.register(DoctorLeave)
+class DoctorLeaveAdmin(admin.ModelAdmin):
+    list_display = ["doctor", "leave_date", "is_sanction"]
+    list_filter = ["doctor", "is_sanction"]

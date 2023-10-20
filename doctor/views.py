@@ -299,27 +299,57 @@ def reschedule_meeting(request):
 
         datetime_str = date + " " + time
         input_format = "%Y-%m-%d %H:%M"
+        schedule_date_obj = datetime.strptime(datetime_str, input_format)
+        try: 
+            with transaction.atomic():
+                availability_obj = (
+                        Availability.objects.select_for_update()
+                        .filter(
+                            date=schedule_date_obj.date(),
+                            time_slot__start_time=schedule_date_obj.time(),
+                            is_available=True,
+                            is_booked=False,
+                        )
+                        .order_by("doctor__priority")
+                        .first()
+                    )
 
-        schedule_date = datetime.strptime(datetime_str, input_format)
+                if not availability_obj:
+                    return Response(
+                        {
+                            "status": False,
+                            "message": "We couldn't find any available doctors. Please make another selection.",
+                        },
+                        400,
+                    )
+                try:
+                    appointment_obj = Appointments.objects.get(pk=appointment_id)
+                except:
+                    return Response({"status": False, "message": "Appointment not found"}, 404)
+                
+                #Release preassigned doctor
+                avail_dr = Availability.objects.filter(doctor=appointment_obj.doctor, id=appointment_obj.slot_key).first()
+                avail_dr.is_booked = False
+                avail_dr.save()
 
-        try:
-            appointment_obj = Appointments.objects.get(pk=appointment_id)
-        except:
-            return Response({"status": False, "message": "Appointment not found"}, 404)
+                appointment_obj.doctor = availability_obj.doctor
+                appointment_obj.schedule_date = schedule_date_obj
+                appointment_obj.slot_key = availability_obj.id
+                appointment_obj.status = "rescheduled"
+                appointment_obj.save()
 
-        appointment_obj.doctor
-        appointment_obj.schedule_date
-        appointment_obj.status
-        appointment_obj.meeting_link
-        appointment_obj.save()
-        return Response(
-            {
-                "status": True,
-                "message": "Appointment has been successfully rescheduled",
-            },
-            200,
-        )
+                availability_obj.is_booked = True
+                availability_obj.save()
 
+                return Response(
+                    {
+                        "status": True,
+                        "message": "Appointment has been successfully rescheduled",
+                    },
+                    200,
+                )
+        except Exception as e:
+            return Response({"status": False, "message": "Something went wrong. Please try again later"}, 400)
 
 @token_required
 @api_view(["PATCH"])
