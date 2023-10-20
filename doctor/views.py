@@ -15,6 +15,7 @@ from doctor.serializers import (  # Doctor Serializers
     PatientsSerializer,
     Patients,
     Doctors,
+    AvailabilitySerializer,
 )
 from utilities.algo import get_available_time_slots
 from rest_framework.response import Response
@@ -37,7 +38,7 @@ from django.http import JsonResponse
 from datetime import datetime, timedelta
 from django.db.models import Q
 from django.conf import settings
-from django.db.models import Min, Max
+from django.db.models import Min, Max, F
 from doctor.models import Doctors
 
 sel = "2023-09-28 12:00"
@@ -78,7 +79,7 @@ def get_available_doctor(selected_date):
     if low_priority_doctor:
         return (low_priority_doctor.order_by("?").values_list("id", flat=True))[0]
 
-
+import time
 @token_required
 @api_view(["GET"])
 def time_slots(request):
@@ -92,16 +93,22 @@ def time_slots(request):
             {"status": False, "message": "Invalid date format. Please use '%Y-%m-%d'."}
         )
 
-    parsed_date = datetime.strptime(date, "%Y-%m-%d")
+    parsed_date = datetime.strptime(date, "%Y-%m-%d").date()
 
     today = datetime.today().date()
-    if not parsed_date.date() >= today:
+    if not parsed_date >= today:
         return Response(
             {"status": False, "message": "The provided date is not valid."}, 400
         )
 
-    data = get_available_time_slots(date)
-    return Response({"status": True, "data": data})
+    current_date_time = datetime.now()
+
+    if parsed_date == current_date_time.date():
+        avail = Availability.objects.filter(date=parsed_date, is_booked=False, time_slot__start_time__gt=current_date_time.time()).distinct().order_by("time_slot__start_time").annotate(slot_time=F('time_slot__start_time')).values("slot_time")
+    else:
+        avail = Availability.objects.filter(date=parsed_date, is_booked=False).distinct().order_by("time_slot__start_time").annotate(slot_time=F('time_slot__start_time')).values("slot_time")
+
+    return Response({"status": True, "data": avail})
 
 
 @token_required
@@ -229,12 +236,13 @@ def schedule_meeting(request):
                     patient_schedule_date, "%Y-%m-%d %H:%M"
                 )
 
+                print(Availability.objects.filter(time_slot__start_time=schedule_date_obj.time().strftime("%H:%M"), is_booked=False))
+
                 availability_obj = (
                     Availability.objects.select_for_update()
                     .filter(
                         date=schedule_date_obj.date(),
-                        time_slot__start_time=schedule_date_obj.time(),
-                        is_available=True,
+                        time_slot__start_time=schedule_date_obj.time().strftime("%H:%M"),
                         is_booked=False,
                     )
                     .order_by("doctor__priority")
@@ -253,8 +261,7 @@ def schedule_meeting(request):
                 appointment_obj = Appointments.objects.create(
                     patient=patient_obj,
                     doctor=availability_obj.doctor,
-                    date=schedule_date_obj.date(),
-                    time=schedule_date_obj.time(),
+                    schedule_date=schedule_date_obj,
                     slot_key=availability_obj.id,
                     room_name=get_room_no(),
                     no_cost_consult=settings.NO_COST_CONSULT,

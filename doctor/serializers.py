@@ -68,3 +68,15 @@ class AppointmentsSerializer(BaseSerializer):
     class Meta:
         model = Appointments
         fields = "__all__"
+
+
+class AvailabilitySerializer(BaseSerializer):
+    # slot_time = serializers.SerializerMethodField()
+    class Meta:
+        model = Availability
+        fields = "__all__"
+    
+    # def get_slot_time(self, obj):
+    #     print(obj)
+    #     #obj.time_slot.start_time
+    #     return "000"
