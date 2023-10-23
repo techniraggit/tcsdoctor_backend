@@ -106,8 +106,14 @@ class Patients(DateTimeFieldMixin):
     dob = models.DateField()
     gender = models.CharField(max_length=20, choices=GENDER_CHOICES)
 
-    pre_health_issue = models.TextField(null=True, blank=True)
-    treatment_undergoing = models.TextField(null=True, blank=True)
+    pre_health_issue = models.BooleanField()
+    pre_health_issue_text = models.TextField(null=True, blank=True)
+
+    treatment_undergoing = models.BooleanField()
+    treatment_undergoing_text = models.TextField(null=True, blank=True)
+
+    treatment_allergies = models.BooleanField()
+    treatment_allergies_text = models.TextField(null=True, blank=True)
 
     additional_note = models.TextField(null=True, blank=True)
 
