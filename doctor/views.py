@@ -176,6 +176,13 @@ def schedule_meeting(request):
         patient_paid_amount = data["patient"].get("paid_amount")
         patient_pay_mode = data["patient"].get("pay_mode")
         patient_schedule_date = data["patient"].get("schedule_date")
+        pre_health_issue = data["patient"].get("pre_health_issue")
+        pre_health_issue_text = data["patient"].get("pre_health_issue_text")
+        treatment_undergoing = data["patient"].get("treatment_undergoing")
+        treatment_undergoing_text = data["patient"].get("treatment_undergoing_text")
+        treatment_allergies = data["patient"].get("treatment_allergies")
+        treatment_allergies_text = data["patient"].get("treatment_allergies_text")
+        additional_note = data["patient"].get("additional_note")
 
         if not is_valid_email(patient_email):
             return Response(
@@ -241,6 +248,13 @@ def schedule_meeting(request):
                     gender=patient_gender,
                     paid_amount=patient_paid_amount,
                     pay_mode=patient_pay_mode,
+                    pre_health_issue = pre_health_issue,
+                    pre_health_issue_text = pre_health_issue_text,
+                    treatment_undergoing = treatment_undergoing,
+                    treatment_undergoing_text = treatment_undergoing_text,
+                    treatment_allergies = treatment_allergies,
+                    treatment_allergies_text = treatment_allergies_text,
+                    additional_note = additional_note,
                 )
                 patient_obj.save()
 
