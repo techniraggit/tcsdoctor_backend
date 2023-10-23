@@ -4,10 +4,12 @@ from accounts.serializers import UserSerializer
 from administrator.models import UserPushNotification
 from django.utils import timezone
 
+
 class DoctorAvailabilitySerializer(BaseSerializer):
     class Meta:
         model = DoctorAvailability
-        fields = ('id', 'start_working_hr', 'end_working_hr', 'working_days')
+        fields = ("id", "start_working_hr", "end_working_hr", "working_days")
+
 
 class DoctorSerializer(BaseSerializer):
     doctor_availability = DoctorAvailabilitySerializer(many=True, read_only=True)
@@ -67,4 +69,10 @@ class AppointmentsSerializer(BaseSerializer):
 
     class Meta:
         model = Appointments
+        fields = "__all__"
+
+
+class AvailabilitySerializer(BaseSerializer):
+    class Meta:
+        model = Availability
         fields = "__all__"

@@ -8,20 +8,23 @@ from doctor.models import (  # Doctor Models
     Appointments,
     Consultation,
     NotePad,
+    Availability,
 )
 from doctor.serializers import (  # Doctor Serializers
     AppointmentsSerializer,
     PatientsSerializer,
     Patients,
     Doctors,
+    AvailabilitySerializer,
 )
 from utilities.algo import get_available_time_slots
 from rest_framework.response import Response
 from rest_framework.views import APIView
-from utilities.utils import (
+from utilities.utils import (  # Utils
     is_valid_date,
     is_valid_email,
     is_valid_phone,
+    get_room_no,
 )
 from core.decorators import token_required
 from core.mixins import DoctorViewMixin
@@ -35,7 +38,7 @@ from django.http import JsonResponse
 from datetime import datetime, timedelta
 from django.db.models import Q
 from django.conf import settings
-from django.db.models import Min, Max
+from django.db.models import Min, Max, F
 from doctor.models import Doctors
 
 sel = "2023-09-28 12:00"
@@ -44,21 +47,12 @@ from django.forms.models import model_to_dict
 
 
 def get_available_doctor(selected_date):
-    print(f'selected_date; {selected_date}, {type(selected_date)}')
     date_obj = datetime.strptime(selected_date, "%Y-%m-%d %H:%M")
 
-
-
-    print(f'date_obj: {date_obj}, {type(date_obj)}')
     day = date_obj.strftime("%A")
     time = date_obj.time()
     date = date_obj.date()
-    added_time = (date_obj+ timedelta(minutes=15))
-
-    print("date ============= ", date)
-    print("time ============= ", time)
-    print("day ============= ", day)
-    print("added_time ============= ", added_time, type(added_time))
+    added_time = date_obj + timedelta(minutes=15)
 
     doctors_not_in_appointments = Doctors.objects.filter(
         working_days__contains=[day],
@@ -79,6 +73,9 @@ def get_available_doctor(selected_date):
         return (low_priority_doctor.order_by("?").values_list("id", flat=True))[0]
 
 
+import time
+
+
 @token_required
 @api_view(["GET"])
 def time_slots(request):
@@ -92,14 +89,38 @@ def time_slots(request):
             {"status": False, "message": "Invalid date format. Please use '%Y-%m-%d'."}
         )
 
-    parsed_date = datetime.strptime(date, "%Y-%m-%d")
+    parsed_date = datetime.strptime(date, "%Y-%m-%d").date()
 
     today = datetime.today().date()
-    if not parsed_date.date() >= today:
-        return Response({"status":False, "message": "The provided date is not valid."}, 400)
+    if not parsed_date >= today:
+        return Response(
+            {"status": False, "message": "The provided date is not valid."}, 400
+        )
 
-    data = get_available_time_slots(date)
-    return Response({"status": True, "data": data})
+    current_date_time = datetime.now()
+
+    if parsed_date == current_date_time.date():
+        avail = (
+            Availability.objects.filter(
+                date=parsed_date,
+                is_booked=False,
+                time_slot__start_time__gt=current_date_time.time(),
+            )
+            .distinct()
+            .order_by("time_slot__start_time")
+            .annotate(slot_time=F("time_slot__start_time"))
+            .values("slot_time")
+        )
+    else:
+        avail = (
+            Availability.objects.filter(date=parsed_date, is_booked=False)
+            .distinct()
+            .order_by("time_slot__start_time")
+            .annotate(slot_time=F("time_slot__start_time"))
+            .values("slot_time")
+        )
+
+    return Response({"status": True, "data": avail})
 
 
 @token_required
@@ -223,29 +244,55 @@ def schedule_meeting(request):
                 )
                 patient_obj.save()
 
-                res_dr = get_available_doctor(patient_schedule_date)
+                schedule_date_obj = datetime.strptime(
+                    patient_schedule_date, "%Y-%m-%d %H:%M"
+                )
 
-                try:
-                    print("res_dr -- ", res_dr)
-                    doctor_obj = Doctors.objects.get(pk=res_dr)
-                except Exception as e:
+                availability_obj = (
+                    Availability.objects.select_for_update()
+                    .filter(
+                        date=schedule_date_obj.date(),
+                        time_slot__start_time=schedule_date_obj.time().strftime(
+                            "%H:%M"
+                        ),
+                        is_booked=False,
+                    )
+                    .order_by("doctor__priority")
+                    .first()
+                )
+
+                if not availability_obj:
                     return Response(
                         {
                             "status": False,
                             "message": "We couldn't find any available doctors. Please make another selection.",
-                            "detail": str(e),
                         },
                         400,
                     )
 
                 appointment_obj = Appointments.objects.create(
                     patient=patient_obj,
-                    doctor=doctor_obj,
-                    schedule_date=patient_schedule_date,
+                    doctor=availability_obj.doctor,
+                    schedule_date=schedule_date_obj,
+                    slot_key=availability_obj.id,
+                    room_name=get_room_no(),
+                    no_cost_consult=settings.NO_COST_CONSULT,
                     meeting_link="http://0.0.0.0:9000/backend/accounts/user/",
                 )
+                availability_obj.is_booked = True
+                availability_obj.save()
 
-                data = model_to_dict(appointment_obj)
+                data = {
+                    "appointment_id": appointment_obj.appointment_id,
+                    "patient": appointment_obj.patient.patient_id,
+                    "doctor": appointment_obj.doctor.user.id,
+                    "schedule_date": appointment_obj.schedule_date,
+                    "slot_key": appointment_obj.slot_key,
+                    "room_name": appointment_obj.room_name,
+                    "no_cost_consult": appointment_obj.no_cost_consult,
+                    "status": appointment_obj.status,
+                    "meeting_link": appointment_obj.meeting_link,
+                }
 
                 return Response(
                     {
@@ -281,26 +328,66 @@ def reschedule_meeting(request):
 
         datetime_str = date + " " + time
         input_format = "%Y-%m-%d %H:%M"
-
-        schedule_date = datetime.strptime(datetime_str, input_format)
-
+        schedule_date_obj = datetime.strptime(datetime_str, input_format)
         try:
-            appointment_obj = Appointments.objects.get(pk=appointment_id)
-        except:
-            return Response({"status": False, "message": "Appointment not found"}, 404)
+            with transaction.atomic():
+                availability_obj = (
+                    Availability.objects.select_for_update()
+                    .filter(
+                        date=schedule_date_obj.date(),
+                        time_slot__start_time=schedule_date_obj.time(),
+                        is_booked=False,
+                    )
+                    .order_by("doctor__priority")
+                    .first()
+                )
 
-        appointment_obj.doctor
-        appointment_obj.schedule_date
-        appointment_obj.status
-        appointment_obj.meeting_link
-        appointment_obj.save()
-        return Response(
-            {
-                "status": True,
-                "message": "Appointment has been successfully rescheduled",
-            },
-            200,
-        )
+                if not availability_obj:
+                    return Response(
+                        {
+                            "status": False,
+                            "message": "We couldn't find any available doctors. Please make another selection.",
+                        },
+                        400,
+                    )
+                try:
+                    appointment_obj = Appointments.objects.get(pk=appointment_id)
+                except:
+                    return Response(
+                        {"status": False, "message": "Appointment not found"}, 404
+                    )
+
+                # Release preassigned doctor
+                avail_dr = Availability.objects.filter(
+                    doctor=appointment_obj.doctor, id=appointment_obj.slot_key
+                ).first()
+                avail_dr.is_booked = False
+                avail_dr.save()
+
+                appointment_obj.doctor = availability_obj.doctor
+                appointment_obj.schedule_date = schedule_date_obj
+                appointment_obj.slot_key = availability_obj.id
+                appointment_obj.status = "rescheduled"
+                appointment_obj.save()
+
+                availability_obj.is_booked = True
+                availability_obj.save()
+
+                return Response(
+                    {
+                        "status": True,
+                        "message": "Appointment has been successfully rescheduled",
+                    },
+                    200,
+                )
+        except Exception as e:
+            return Response(
+                {
+                    "status": False,
+                    "message": "Something went wrong. Please try again later",
+                },
+                400,
+            )
 
 
 @token_required
@@ -309,7 +396,9 @@ def cancel_meeting(request):
     if request.method == "PATCH":
         appointment_id = request.data.get("appointment_id")
         if not appointment_id:
-            return Response({"status": False, "message": "Appointment id required"}, 400)
+            return Response(
+                {"status": False, "message": "Appointment id required"}, 400
+            )
 
         try:
             appointment_obj = Appointments.objects.get(pk=appointment_id)
@@ -318,14 +407,21 @@ def cancel_meeting(request):
 
         appointment_obj.status = "cancelled"
         appointment_obj.save()
+        # Release assigned doctor
+        avail_dr = Availability.objects.filter(
+            doctor=appointment_obj.doctor, id=appointment_obj.slot_key
+        ).first()
+        avail_dr.is_booked = False
+        avail_dr.save()
 
         return Response(
             {
                 "status": True,
                 "message": "Appointment has been successfully cancelled",
             },
-            200
+            200,
         )
+
 
 class AppointmentView(DoctorViewMixin):
     def get(self, request):
@@ -427,22 +523,28 @@ class ConsultView(APIView):
         notepad = request.data.get("notepad")
         room_name = request.data.get("room_name")
         if not all([notepad, room_name]):
-            return Response({"status": False, "message": "Required fields are missing"}, 400)
+            return Response(
+                {"status": False, "message": "Required fields are missing"}, 400
+            )
         # try:
         #     appointment_obj = Appointments.objects.get(room_name=room_name)
         # except:
         #     return Response({"status": False, "message": "Room not found"}, 404)
-        
+
         try:
-            NotePad.objects.create(
-                room_name=room_name,
-                notepad = notepad
-            )
+            NotePad.objects.create(room_name=room_name, notepad=notepad)
             # Consultation.objects.create(
             #     patient = appointment_obj.patient,
             #     doctor = appointment_obj.doctor,
             #     consult = notepad,
             # )
-            return Response({"status": True, "message": "Your submission was successful"})
+            return Response(
+                {"status": True, "message": "Your submission was successful"}
+            )
         except Exception as e:
             return Response({"status": False, "message": str(e)}, 400)
+
+
+class AppointmentViewTest(APIView):
+    def post(self, request):
+        pass

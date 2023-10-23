@@ -1,3 +1,4 @@
+import uuid
 import os
 import tempfile
 from datetime import datetime
@@ -42,3 +43,7 @@ def generate_otp(length=6):
     for _ in range(length):
         otp += str(random.randint(0, 9))
     return otp
+
+
+def get_room_no():
+    return str(uuid.uuid4()).split("-")[-1]

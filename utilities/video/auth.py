@@ -6,9 +6,12 @@ twilio_account_sid = settings.TWILIO_ACCOUNT_SID
 twilio_api_key = settings.TWILIO_API_KEY
 twilio_api_secret = settings.TWILIO_API_SECRET
 
+
 def get_access_token(identity, room_name):
     # Create Access Token with credentials
-    token = AccessToken(twilio_account_sid, twilio_api_key, twilio_api_secret, identity=identity)
+    token = AccessToken(
+        twilio_account_sid, twilio_api_key, twilio_api_secret, identity=identity
+    )
 
     # Create a Video grant and add to token
     video_grant = VideoGrant(room=room_name)

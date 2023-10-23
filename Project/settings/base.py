@@ -101,9 +101,9 @@ DATABASES = {
 }
 
 CACHES = {
-    'default': {
-        'BACKEND': 'django.core.cache.backends.redis.RedisCache',
-        'LOCATION': os.environ.get("CACHE_LOCATION"),
+    "default": {
+        "BACKEND": "django.core.cache.backends.redis.RedisCache",
+        "LOCATION": os.environ.get("CACHE_LOCATION"),
     }
 }
 
@@ -174,6 +174,9 @@ SIMPLE_JWT = {
     ),
     "ROTATE_REFRESH_TOKENS": True,
 }
+
+DATE_TIME_FORMATE = "%Y-%m-%d %H:%M"
+DATE_FORMATE = "%Y-%m-%d"
 
 JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM")
 
