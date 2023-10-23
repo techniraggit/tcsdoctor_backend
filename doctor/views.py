@@ -176,11 +176,11 @@ def schedule_meeting(request):
         patient_paid_amount = data["patient"].get("paid_amount")
         patient_pay_mode = data["patient"].get("pay_mode")
         patient_schedule_date = data["patient"].get("schedule_date")
-        pre_health_issue = data["patient"].get("pre_health_issue")
+        pre_health_issue = data["patient"].get("pre_health_issue").lower() == "yes"
         pre_health_issue_text = data["patient"].get("pre_health_issue_text")
-        treatment_undergoing = data["patient"].get("treatment_undergoing")
+        treatment_undergoing = data["patient"].get("treatment_undergoing").lower() == "yes"
         treatment_undergoing_text = data["patient"].get("treatment_undergoing_text")
-        treatment_allergies = data["patient"].get("treatment_allergies")
+        treatment_allergies = data["patient"].get("treatment_allergies").lower() == "yes"
         treatment_allergies_text = data["patient"].get("treatment_allergies_text")
         additional_note = data["patient"].get("additional_note")
 
@@ -220,7 +220,10 @@ def schedule_meeting(request):
                 400,
             )
 
-        if not isinstance(patient_paid_amount, int or float):
+        try:
+            patient_paid_amount = float(patient_paid_amount)
+        except:
+        # if not isinstance(patient_paid_amount, int or float):
             return Response(
                 {
                     "status": False,
