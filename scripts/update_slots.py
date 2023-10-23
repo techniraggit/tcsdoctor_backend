@@ -29,22 +29,24 @@ def UpdateSlot(day=7):
                 )
             except:
                 pass
-
-
-def GetSlot(date):
-    avail = Availability.objects.filter(date=date, is_booked=False).values(
-        "time_slot__start_time"
-    )
-    print(avail.count())
-    return avail
-
-
-def DeleteSlot():
     yesterday = (datetime.today()) - timedelta(days=1)
-    avail = Availability.objects.filter(date=yesterday).delete()
-    print(avail)
+    Availability.objects.filter(date=yesterday).delete()
 
 
-# GetSlot("2023-10-20")
+# def GetSlot(date):
+#     avail = Availability.objects.filter(date=date, is_booked=False).values(
+#         "time_slot__start_time"
+#     )
+#     print(avail.count())
+#     return avail
+
+
+# def DeleteSlot():
+#     yesterday = (datetime.today()) - timedelta(days=1)
+#     avail = Availability.objects.filter(date=yesterday).delete()
+#     print(avail)
+
+
+# GetSlot("2023-10-24")
 UpdateSlot(3)
 # DeleteSlot()

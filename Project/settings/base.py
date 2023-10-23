@@ -198,3 +198,8 @@ FALCON_API_URL = os.environ.get("FALCON_API_URL")
 FALCON_FROM_EMAIL = os.environ.get("FALCON_FROM_EMAIL")
 FALCON_FROM_NAME = os.environ.get("FALCON_FROM_NAME")
 FALCON_REPLY_TO_ID = os.environ.get("FALCON_REPLY_TO_ID")
+
+#JOBS
+CRON_JOBS = [
+    # "* * * * *, scripts/update_slots.py",
+]
