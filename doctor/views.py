@@ -548,3 +548,17 @@ class ConsultView(APIView):
 class AppointmentViewTest(APIView):
     def post(self, request):
         pass
+
+
+@token_required
+@api_view(["GET"])
+def my_appointments(request):
+    id = request.GET.get("id")
+    if not id:
+        return Response(
+            {"status": False, "message": "Required fields are missing"}, 400
+        )
+
+    appointment_obj = Appointments.objects.filter(patient__user__user_id=id)
+    data = AppointmentsSerializer(appointment_obj, many=True).data
+    return Response({"status": True, "data": data}, 200)
