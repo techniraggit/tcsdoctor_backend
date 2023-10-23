@@ -62,6 +62,7 @@ class DoctorAvailability(DateTimeFieldMixin):
     def __str__(self) -> str:
         return self.doctor.user.email
 
+
 class DoctorLeave(DateTimeFieldMixin):
     doctor = models.ForeignKey(Doctors, on_delete=models.CASCADE)
     leave_date = models.DateField()
@@ -69,7 +70,7 @@ class DoctorLeave(DateTimeFieldMixin):
 
     class Meta:
         db_table = "doctor_leave"
-    
+
     def __str__(self):
         return self.doctor.user.email
 
@@ -178,8 +179,7 @@ class Availability(DateTimeFieldMixin):
 
     class Meta:
         db_table = "availability"
-        unique_together = ('doctor', 'date', 'time_slot')
-
+        unique_together = ("doctor", "date", "time_slot")
 
 
 class Appointments(DateTimeFieldMixin):

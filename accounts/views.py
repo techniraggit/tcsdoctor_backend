@@ -95,7 +95,13 @@ class SendLoginOTPView(APIView):
                     LOGIN_OTP.format(first_name=user_get.first_name, otp=user_get.otp),
                 )
                 if not sms_status:
-                    return Response({"status": False, "message": "Message sending failed. Please try again later."}, 500)
+                    return Response(
+                        {
+                            "status": False,
+                            "message": "Message sending failed. Please try again later.",
+                        },
+                        500,
+                    )
                 return Response(
                     {"status": True, "message": f"Otp sent to {user_get.phone_number}"}
                 )
@@ -136,7 +142,7 @@ class ValidateLoginOTPView(APIView):
                             "user_type": user_type,
                             "first_name": user_get.first_name,
                             "last_name": user_get.last_name,
-                            "message": "You have been successfully logged in"
+                            "message": "You have been successfully logged in",
                         },
                         200,
                     )

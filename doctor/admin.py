@@ -38,7 +38,6 @@ class AppointmentsAdmin(admin.ModelAdmin):
     list_filter = ["status"]
 
 
-
 @admin.register(Doctors)
 class DoctorsAdmin(admin.ModelAdmin):
     list_display = [
@@ -51,6 +50,7 @@ class DoctorsAdmin(admin.ModelAdmin):
     ]
     list_filter = ["is_active"]
     search_fields = ["user_id", "user__email", "user__phone_number", "clinic_name"]
+
 
 @admin.register(DoctorAvailability)
 class DoctorAvailabilityAdmin(admin.ModelAdmin):
@@ -68,6 +68,7 @@ class DoctorAvailabilityAdmin(admin.ModelAdmin):
 class NotePadAdmin(admin.ModelAdmin):
     list_display = "room_name", "notepad"
 
+
 @admin.register(TimeSlot)
 class TimeSlotAdmin(admin.ModelAdmin):
     list_display = ["id", "start_time"]
@@ -77,6 +78,7 @@ class TimeSlotAdmin(admin.ModelAdmin):
 class AvailabilityAdmin(admin.ModelAdmin):
     list_display = ["doctor", "date", "time_slot", "is_booked"]
     search_fields = ["date"]
+
 
 @admin.register(DoctorLeave)
 class DoctorLeaveAdmin(admin.ModelAdmin):

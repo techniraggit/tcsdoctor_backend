@@ -12,6 +12,7 @@ from utilities import TIME_SLOTS
 
 TIME_FORMATE = "%Y/%m/%d"
 
+
 def slots(selected_date):
     date_obj = datetime.strptime(selected_date, TIME_FORMATE)
     day = date_obj.strftime("%A")
@@ -23,7 +24,6 @@ def slots(selected_date):
         Q(Q(appointments__status="completed") | Q(appointments__isnull=True))
         & Q(doctor_availability__working_days__contains=[day])
     ).distinct()
-
 
     if not doctors:
         return [], []
@@ -72,7 +72,7 @@ def slots(selected_date):
 def get_timeout(date):
     current_date = datetime.now()
     future_date = datetime.strptime(date, TIME_FORMATE)
-    time_difference = ((future_date+timedelta(days=1)) - current_date).total_seconds()
+    time_difference = ((future_date + timedelta(days=1)) - current_date).total_seconds()
     return time_difference
 
 
@@ -99,12 +99,12 @@ def UpdateAppointment():
 
 
 def FindAvailableSlots(date):
-    data = (cache.get(date))
+    data = cache.get(date)
     result_dict = {}
 
     for key in data.keys():
         if key in TIME_SLOTS:
-            result_dict[key] = (TIME_SLOTS.get(key))
+            result_dict[key] = TIME_SLOTS.get(key)
     return result_dict
 
 
@@ -125,9 +125,7 @@ def UpdateSlot(date, slot_dict, id):
     if key in slot_dict:
         slot_dict[key] = [x for x in slot_dict[key] if x != id]
 
-    cache.set(
-        date, slot_dict
-    )
+    cache.set(date, slot_dict)
 
 
 if __name__ == "__main__":
