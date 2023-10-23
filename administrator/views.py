@@ -130,7 +130,7 @@ class DoctorView(AdminViewMixin):
             return Response(
                 {
                     "status": False,
-                    "message": "The format for the appointment is not valid",
+                    "message": "The format for the availability is not valid",
                 },
                 400,
             )
@@ -323,7 +323,7 @@ class DoctorView(AdminViewMixin):
             return Response(
                 {
                     "status": False,
-                    "message": "The format for the appointment is not valid",
+                    "message": "The format for the availability is not valid",
                 },
                 400,
             )
