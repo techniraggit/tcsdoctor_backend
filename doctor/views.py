@@ -178,9 +178,13 @@ def schedule_meeting(request):
         patient_schedule_date = data["patient"].get("schedule_date")
         pre_health_issue = data["patient"].get("pre_health_issue").lower() == "yes"
         pre_health_issue_text = data["patient"].get("pre_health_issue_text")
-        treatment_undergoing = data["patient"].get("treatment_undergoing").lower() == "yes"
+        treatment_undergoing = (
+            data["patient"].get("treatment_undergoing").lower() == "yes"
+        )
         treatment_undergoing_text = data["patient"].get("treatment_undergoing_text")
-        treatment_allergies = data["patient"].get("treatment_allergies").lower() == "yes"
+        treatment_allergies = (
+            data["patient"].get("treatment_allergies").lower() == "yes"
+        )
         treatment_allergies_text = data["patient"].get("treatment_allergies_text")
         additional_note = data["patient"].get("additional_note")
 
@@ -223,7 +227,7 @@ def schedule_meeting(request):
         try:
             patient_paid_amount = float(patient_paid_amount)
         except:
-        # if not isinstance(patient_paid_amount, int or float):
+            # if not isinstance(patient_paid_amount, int or float):
             return Response(
                 {
                     "status": False,
@@ -251,13 +255,13 @@ def schedule_meeting(request):
                     gender=patient_gender,
                     paid_amount=patient_paid_amount,
                     pay_mode=patient_pay_mode,
-                    pre_health_issue = pre_health_issue,
-                    pre_health_issue_text = pre_health_issue_text,
-                    treatment_undergoing = treatment_undergoing,
-                    treatment_undergoing_text = treatment_undergoing_text,
-                    treatment_allergies = treatment_allergies,
-                    treatment_allergies_text = treatment_allergies_text,
-                    additional_note = additional_note,
+                    pre_health_issue=pre_health_issue,
+                    pre_health_issue_text=pre_health_issue_text,
+                    treatment_undergoing=treatment_undergoing,
+                    treatment_undergoing_text=treatment_undergoing_text,
+                    treatment_allergies=treatment_allergies,
+                    treatment_allergies_text=treatment_allergies_text,
+                    additional_note=additional_note,
                 )
                 patient_obj.save()
 
@@ -445,6 +449,7 @@ class AppointmentView(DoctorViewMixin):
     def get(self, request):
         search_query = (request.GET.get("search_query", "")).lower()
         list_of_available_search_query = ["pending", "completed", "rescheduled"]
+        filter_by_date = request.GET.get("date")
 
         if search_query:
             if search_query not in list_of_available_search_query:
@@ -456,6 +461,19 @@ class AppointmentView(DoctorViewMixin):
                 )
             query_set = Appointments.objects.filter(
                 doctor__user=request.user, status=search_query
+            )
+
+        elif filter_by_date:
+            if not is_valid_date(filter_by_date, "%Y-%m-%d"):
+                return Response(
+                    {
+                        "status": False,
+                        "message": "Invalid schedule date format. Please use YYYY-MM-DD",
+                    },
+                    400,
+                )
+            query_set = Appointments.objects.filter(
+                doctor__user=request.user, schedule_date__date=filter_by_date
             )
 
         else:
