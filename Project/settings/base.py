@@ -201,5 +201,5 @@ FALCON_REPLY_TO_ID = os.environ.get("FALCON_REPLY_TO_ID")
 
 #JOBS
 CRON_JOBS = [
-    # "* * * * *, scripts/update_slots.py",
+    "1 0 * * *, scripts/update_slots.py",
 ]

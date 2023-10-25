@@ -1,4 +1,6 @@
-from project_setup import *
+import sys
+if __name__ == "__main__":
+    from project_setup import *
 from doctor.models import DoctorAvailability, DoctorLeave, TimeSlot, Availability
 from datetime import datetime, timedelta
 
@@ -29,24 +31,21 @@ def UpdateSlot(day=7):
                 )
             except:
                 pass
+    return date_obj.strftime(DATE_FORMATE)
+
+
+def DeleteSlot():
     yesterday = (datetime.today()) - timedelta(days=1)
     Availability.objects.filter(date=yesterday).delete()
 
 
-# def GetSlot(date):
-#     avail = Availability.objects.filter(date=date, is_booked=False).values(
-#         "time_slot__start_time"
-#     )
-#     print(avail.count())
-#     return avail
-
-
-# def DeleteSlot():
-#     yesterday = (datetime.today()) - timedelta(days=1)
-#     avail = Availability.objects.filter(date=yesterday).delete()
-#     print(avail)
-
-
-# GetSlot("2023-10-24")
-UpdateSlot(3)
-# DeleteSlot()
+if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        try:
+            argument_value = int(sys.argv[1])
+            UpdateSlot(argument_value)
+        except:
+            print("The argument should be an integer.")
+    else:
+        UpdateSlot()
+    DeleteSlot()
