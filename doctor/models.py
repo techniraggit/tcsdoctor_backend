@@ -196,6 +196,7 @@ class Appointments(DateTimeFieldMixin):
     slot_key = models.CharField(max_length=5)
     room_name = models.CharField(max_length=50)
     no_cost_consult = models.IntegerField(default=0)
+    is_attended = models.BooleanField(default=False)
     status = models.CharField(
         max_length=50, choices=APPOINTMENT_STATUS_CHOICES, default="pending"
     )
