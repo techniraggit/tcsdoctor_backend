@@ -17,7 +17,7 @@ from doctor.serializers import (  # Doctor Serializers
     Doctors,
     AvailabilitySerializer,
 )
-from utilities.algo import get_available_time_slots
+
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from utilities.utils import (  # Utils
