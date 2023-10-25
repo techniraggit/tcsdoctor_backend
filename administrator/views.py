@@ -1,3 +1,7 @@
+from scripts.update_slots import UpdateSlot, DeleteSlot
+from datetime import timedelta
+from django.db.models import Max, Min
+import json
 from django.db.models import (
     Sum,
     Case,
@@ -27,6 +31,7 @@ from doctor.serializers import (  # Doctor Serializer and Models
     Patients,
     Appointments,
     AppointmentsSerializer,
+    Availability,
 )
 from accounts.models import User
 from django.db.models import (
@@ -49,9 +54,6 @@ def validate_time(start_time, end_time):
         return True
     except ValueError:
         return False
-
-
-import json
 
 
 class DoctorView(AdminViewMixin):
@@ -917,3 +919,55 @@ class AppointmentListView(AdminViewMixin):
             return Response(
                 {"status": False, "message": "Something went wrong", "detail": str(e)}
             )
+
+
+class SlotInfoView(AdminViewMixin):
+    def get(self, request):
+        Availabilities = Availability.objects.all()
+
+        max_date = Availabilities.aggregate(max_date=Max("date"))["max_date"]
+        min_date = Availabilities.aggregate(min_date=Min("date"))["min_date"]
+
+        date_range = [
+            min_date + timedelta(days=i) for i in range((max_date - min_date).days + 1)
+        ]
+        data_list = []
+        for date in date_range:
+            data_list.append(
+                {
+                    "date": date,
+                    "is_available": Availabilities.filter(date=date).exists(),
+                }
+            )
+        return Response({"status": True, "data": data_list})
+
+    def post(self, request):
+        day = request.data.get("day")
+        try:
+            if day:
+                try:
+                    day = int(day)
+                except:
+                    return Response(
+                        {"status": False, "message": "day should be an integer"}
+                    )
+                response = UpdateSlot(day)
+                DeleteSlot()
+                return Response(
+                    {
+                        "status": True,
+                        "message": f"Slots have been successfully updated for {response}.",
+                    },
+                    200,
+                )
+            response = UpdateSlot()
+            DeleteSlot()
+            return Response(
+                {
+                    "status": True,
+                    "message": f"Slots have been successfully updated for {response}.",
+                },
+                200,
+            )
+        except Exception as e:
+            return Response({"status": False, "message": str(e)}, 400)
