@@ -157,13 +157,14 @@ class Prescriptions(DateTimeFieldMixin):
     class Meta:
         db_table = "prescriptions"
 
-
 APPOINTMENT_STATUS_CHOICES = (
     ("pending", "Pending"),
     ("completed", "Completed"),
     ("rescheduled", "Rescheduled"),
-    ("free consult", "Free Consult"),
+    ("free_consultation", "Free Consultation"),
     ("cancelled", "Cancelled"),
+    ("unanswered_patient", "Unanswered Patient"),
+    ("unanswered_doctor", "Unanswered Doctor"),
 )
 
 

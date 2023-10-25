@@ -450,6 +450,7 @@ class AppointmentView(DoctorViewMixin):
         search_query = (request.GET.get("search_query", "")).lower()
         list_of_available_search_query = ["pending", "completed", "rescheduled"]
         filter_by_date = request.GET.get("date")
+        Appointments_obj = Appointments.objects.filter(doctor__user=request.user)
 
         if search_query:
             if search_query not in list_of_available_search_query:
@@ -459,9 +460,7 @@ class AppointmentView(DoctorViewMixin):
                         "message": f"Invalid status provided. Please use one of the following: {', '.join(list_of_available_search_query)}",
                     }
                 )
-            query_set = Appointments.objects.filter(
-                doctor__user=request.user, status=search_query
-            )
+            query_set = Appointments_obj.filter(status=search_query)
 
         elif filter_by_date:
             if not is_valid_date(filter_by_date, "%Y-%m-%d"):
@@ -472,19 +471,26 @@ class AppointmentView(DoctorViewMixin):
                     },
                     400,
                 )
-            query_set = Appointments.objects.filter(
-                doctor__user=request.user, schedule_date__date=filter_by_date
-            )
+            query_set = Appointments_obj.filter(schedule_date__date=filter_by_date)
 
         else:
-            query_set = Appointments.objects.filter(doctor__user=request.user)
+            query_set = Appointments_obj
 
         data = AppointmentsSerializer(
             query_set,
             many=True,
             fields=["patient", "schedule_date", "status", "filter_by"],
         ).data
-        return Response({"status": True, "data": data})
+
+        display_data = {
+            "number_of_appointments": Appointments_obj.count(),
+            "unanswered_patient": Appointments_obj.filter(
+                status="unanswered_patient"
+            ).count(),
+        }
+        return Response(
+            {"status": True, "data": data, "display_data": display_data}, 200
+        )
 
 
 class PatientView(DoctorViewMixin):
