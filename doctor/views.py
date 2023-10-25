@@ -132,7 +132,7 @@ def schedule_meeting(request):
         user_required_fields = [
             "id",
             "first_name",
-            "last_name",
+            # "last_name",
             "email",
             "phone_number",
         ]
