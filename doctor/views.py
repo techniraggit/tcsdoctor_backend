@@ -308,6 +308,7 @@ def schedule_meeting(request):
                     "room_name": appointment_obj.room_name,
                     "no_cost_consult": appointment_obj.no_cost_consult,
                     "status": appointment_obj.status,
+                    "is_attended": appointment_obj.is_attended,
                     "meeting_link": appointment_obj.meeting_link,
                 }
 

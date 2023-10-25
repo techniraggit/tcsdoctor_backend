@@ -34,8 +34,8 @@ class AppointmentsAdmin(admin.ModelAdmin):
         "meeting_link",
         "no_cost_consult",
     ]
-    search_fields = ["appointment_id", "status"]
-    list_filter = ["status"]
+    search_fields = ["appointment_id", "status", "is_attended"]
+    list_filter = ["status", "is_attended"]
 
 
 @admin.register(Doctors)
