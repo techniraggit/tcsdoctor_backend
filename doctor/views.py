@@ -16,6 +16,7 @@ from doctor.serializers import (  # Doctor Serializers
     Patients,
     Doctors,
     AvailabilitySerializer,
+    ConsultationSerializer,
 )
 
 from rest_framework.response import Response
@@ -508,6 +509,29 @@ class PatientView(DoctorViewMixin):
         return Response({"status": True, "data": data}, 200)
 
 
+class PatientDetailView(DoctorViewMixin):
+    def get(self, request):
+        user_id = request.GET.get("user_id")
+        name = request.GET.get("name")
+        dob = request.GET.get("dob")
+        gender = request.GET.get("gender")
+
+        if not all([user_id, name, dob, gender]):
+            return Response(
+                {"status": False, "message": "required fields are missing"}, 400
+            )
+
+        consultation_obj = Consultation.objects.filter(
+            patient__user__user_id=user_id,
+            doctor__user=request.user,
+            patient__name=name,
+            patient__dob=dob,
+            patient__gender=gender,
+        )
+        consultation_data = ConsultationSerializer(consultation_obj, many=True).data
+        return Response({"status": True, "data": consultation_data}, 200)
+
+
 class ProfileView(DoctorViewMixin):
     def get(self, request):
         try:
@@ -560,7 +584,7 @@ class NotificationsView(DoctorViewMixin):
         return Response({"status": True, "notifications": data})
 
 
-class ConsultView(APIView):
+class ConsultView(DoctorViewMixin):
     def post(self, request):
         notepad = request.data.get("notepad")
         room_name = request.data.get("room_name")
@@ -568,18 +592,18 @@ class ConsultView(APIView):
             return Response(
                 {"status": False, "message": "Required fields are missing"}, 400
             )
-        # try:
-        #     appointment_obj = Appointments.objects.get(room_name=room_name)
-        # except:
-        #     return Response({"status": False, "message": "Room not found"}, 404)
+        try:
+            appointment_obj = Appointments.objects.get(room_name=room_name)
+        except:
+            return Response({"status": False, "message": "Room not found"}, 404)
 
         try:
-            NotePad.objects.create(room_name=room_name, notepad=notepad)
-            # Consultation.objects.create(
-            #     patient = appointment_obj.patient,
-            #     doctor = appointment_obj.doctor,
-            #     consult = notepad,
-            # )
+            # NotePad.objects.create(room_name=room_name, notepad=notepad)
+            Consultation.objects.create(
+                patient=appointment_obj.patient,
+                doctor=appointment_obj.doctor,
+                prescription=notepad,
+            )
             return Response(
                 {"status": True, "message": "Your submission was successful"}
             )

@@ -64,7 +64,7 @@ class PatientsSerializer(BaseSerializer):
 
 
 class AppointmentsSerializer(BaseSerializer):
-    patient = PatientsSerializer(read_only=True, fields=["-user"])
+    patient = PatientsSerializer(read_only=True)
     doctor = DoctorSerializer()
 
     class Meta:
@@ -75,4 +75,14 @@ class AppointmentsSerializer(BaseSerializer):
 class AvailabilitySerializer(BaseSerializer):
     class Meta:
         model = Availability
+        fields = "__all__"
+
+
+class ConsultationSerializer(BaseSerializer):
+    patient = PatientsSerializer(read_only=True)
+    doctor = DoctorSerializer(read_only=True)
+    appointment = AppointmentsSerializer(read_only=True)
+
+    class Meta:
+        model = Consultation
         fields = "__all__"

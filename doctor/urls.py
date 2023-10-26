@@ -11,6 +11,7 @@ urlpatterns = [
     path("cancel_meeting", views.cancel_meeting),
     path("appointments", views.AppointmentView.as_view()),
     path("patients", views.PatientView.as_view()),
+    path("patient_detailed", views.PatientDetailView.as_view()),
     path("notifications", views.NotificationsView.as_view()),
     path("profile", views.ProfileView.as_view()),
     path("consult", views.ConsultView.as_view()),

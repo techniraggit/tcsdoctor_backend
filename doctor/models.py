@@ -157,6 +157,7 @@ class Prescriptions(DateTimeFieldMixin):
     class Meta:
         db_table = "prescriptions"
 
+
 APPOINTMENT_STATUS_CHOICES = (
     ("pending", "Pending"),
     ("completed", "Completed"),
@@ -208,12 +209,10 @@ class Appointments(DateTimeFieldMixin):
 
 
 class Consultation(DateTimeFieldMixin):
-    patient = models.ForeignKey(Patients, on_delete=models.CASCADE)
-    doctor = models.ForeignKey(Doctors, on_delete=models.CASCADE)
-    consult = models.TextField()
-    prescription = models.ForeignKey(
-        Prescriptions, on_delete=models.CASCADE, null=True, blank=True
-    )
+    patient = models.ForeignKey(Patients, on_delete=models.DO_NOTHING)
+    doctor = models.ForeignKey(Doctors, on_delete=models.DO_NOTHING)
+    prescription = models.TextField()
+    appointment = models.ForeignKey(Appointments, on_delete=models.DO_NOTHING)
 
     class Meta:
         db_table = "consultations"
