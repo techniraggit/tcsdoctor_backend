@@ -522,11 +522,11 @@ class PatientDetailView(DoctorViewMixin):
             )
 
         consultation_obj = Consultation.objects.filter(
-            patient__user__user_id=user_id,
-            doctor__user=request.user,
-            patient__name=name,
-            patient__dob=dob,
-            patient__gender=gender,
+            appointment__patient__user__user_id=user_id,
+            appointment__doctor__user=request.user,
+            appointment__patient__name=name,
+            appointment__patient__dob=dob,
+            appointment__patient__gender=gender,
         )
         consultation_data = ConsultationSerializer(consultation_obj, many=True).data
         return Response({"status": True, "data": consultation_data}, 200)
@@ -600,9 +600,8 @@ class ConsultView(DoctorViewMixin):
         try:
             # NotePad.objects.create(room_name=room_name, notepad=notepad)
             Consultation.objects.create(
-                patient=appointment_obj.patient,
-                doctor=appointment_obj.doctor,
                 prescription=notepad,
+                appointment=appointment_obj,
             )
             return Response(
                 {"status": True, "message": "Your submission was successful"}

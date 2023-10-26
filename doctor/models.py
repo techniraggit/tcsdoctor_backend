@@ -209,11 +209,8 @@ class Appointments(DateTimeFieldMixin):
 
 
 class Consultation(DateTimeFieldMixin):
-    patient = models.ForeignKey(Patients, on_delete=models.DO_NOTHING)
-    doctor = models.ForeignKey(Doctors, on_delete=models.DO_NOTHING)
-    prescription = models.TextField()
     appointment = models.ForeignKey(Appointments, on_delete=models.DO_NOTHING)
-
+    prescription = models.TextField()
     class Meta:
         db_table = "consultations"
 
