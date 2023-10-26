@@ -42,6 +42,7 @@ class AppointmentsAdmin(admin.ModelAdmin):
         "status",
         "meeting_link",
         "no_cost_consult",
+        "schedule_date",
     ]
     search_fields = ["appointment_id", "status", "is_attended"]
     list_filter = ["status", "is_attended"]
@@ -93,3 +94,7 @@ class AvailabilityAdmin(admin.ModelAdmin):
 class DoctorLeaveAdmin(admin.ModelAdmin):
     list_display = ["doctor", "leave_date", "is_sanction"]
     list_filter = ["doctor", "is_sanction"]
+
+@admin.register(Transactions)
+class TransactionsAdmin(admin.ModelAdmin):
+    list_display = ["patient", "paid_amount", "pay_mode", "created"]
