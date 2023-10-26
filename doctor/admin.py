@@ -1,11 +1,7 @@
 from django.contrib import admin
 from doctor.models import *
 
-# Register your models here.
-# admin.site.register(Doctors)
-admin.site.register(Patients)
 admin.site.register(Prescriptions)
-# admin.site.register(Appointments)
 admin.site.register(Consultation)
 admin.site.register(Feedbacks)
 admin.site.register(DoctorExperience)
@@ -22,6 +18,19 @@ class UsersAdmin(admin.ModelAdmin):
     ]
     list_filter = ["user_id", "email", "phone_number"]
     search_fields = ["user_id", "email", "phone_number"]
+
+@admin.register(Patients)
+class PatientsAdmin(admin.ModelAdmin):
+    list_display = [
+        "patient_id",
+        "user",
+        "name",
+        "phone",
+        "email",
+        "dob",
+        "gender",
+    ]
+    search_fields = ["name", "phone", "email"]
 
 
 @admin.register(Appointments)
