@@ -88,7 +88,7 @@ class Users(DateTimeFieldMixin):
         db_table = "users"
 
     def __str__(self) -> str:
-        return self.email
+        return f"{self.user_id}-{self.email}"
 
 
 GENDER_CHOICES = (
@@ -131,7 +131,7 @@ class Patients(DateTimeFieldMixin):
         return 0
 
     def __str__(self):
-        return f"{self.name}"
+        return f"{self.patient_id}-{self.name}"
 
 
 class Prescriptions(DateTimeFieldMixin):
@@ -207,10 +207,14 @@ class Appointments(DateTimeFieldMixin):
     class Meta:
         db_table = "appointments"
 
+    def __str__(self):
+        return f"{self.appointment_id}"
+
 
 class Consultation(DateTimeFieldMixin):
     appointment = models.ForeignKey(Appointments, on_delete=models.DO_NOTHING)
     prescription = models.TextField()
+
     class Meta:
         db_table = "consultations"
 
