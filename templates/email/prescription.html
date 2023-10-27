@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+<head>
+    <title>EyeMyEye</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 640px; margin: 0 auto; font-family: Helvetica, sans-serif; border: 1px solid #ccc; border-radius: 10px; overflow: hidden;">
+        <tr>
+            <td style="border-bottom: 1px solid #ccc;  background: #c5e0ff; padding:20px;">
+                <a href="https://pos.niraginfotech.info/" title="EyeMyEye Logo" style="display: block; text-align: center;"> <img src="https://cdn.eyemyeye.com/desktop/images/banners/listing/poslogo.png" alt="EyeMyEyePos" width="200px" /> </a>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 20px;">
+                <p style="font-size: 15px; color: #282c3f;font-weight: 800;"> Subject :- Your Prescription from {{doctor_name}} </p>
+                <p style="font-size: 14px; color: #282c3f;"> Dear {{patient_name}}, </p>
+                <p style="font-size: 14px; color: #282c3f;">I hope this message finds you in good health. As per your recent consultation with Dr. {{doctor_name}}.</p>
+                <p style="font-size: 14px; color: #282c3f;">I am writing to provide you with your prescription information. Your treatment plan is as follows:</p>
+                <p style="font-size: 14px; color: #282c3f;">Prescription Date: {{prescription_date}}</p>
+                <p style="font-size: 14px; color: #282c3f;">Patient's Full Name: {{patient_name}}</p>
+                <p style="font-size: 14px; color: #282c3f;">Date of Birth: {{patient_dob}}</p>
+                <p style="font-size: 14px; color: #282c3f;">Doctor's Name: Dr. {{doctor_name}}</p>
+                <p style="font-size: 14px; color: #282c3f;">Medical License Number: {{doctor_license_number}}</p>
+                <p style="font-size: 14px; color: #282c3f;">Clinic Name: {{clinic_name}}</p>
+                <p style="font-size: 14px; color: #282c3f;">Contact Number: {{clinic_contact_number}}</p>
+                <p style="font-size: 14px; color: #282c3f;">Contact Number: {{prescription_details}}</p>
+                <p style="font-size: 14px; color: #282c3f;margin: 0; font-weight: 800;">Thank You,</p>
+                <p style="font-size: 14px; color: #282c3f;margin: 0; font-weight: 800;">Team EyeMyEye.</p>
+            </td>
+        </tr>
+        <tr>
+            <td style="background-color: #333232; padding:15px 20px;">
+                <p style="color: #fff; font-size: 12px; text-align: center; margin: 0;">Copyright © 2023. All Rights Reserved</p>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

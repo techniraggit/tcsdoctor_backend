@@ -1,3 +1,5 @@
+from utilities.pigeon.service import send_email
+from django.template.loader import render_to_string
 import uuid
 from datetime import date
 from django.core.validators import (
@@ -130,12 +132,13 @@ class Patients(DateTimeFieldMixin):
     def __str__(self):
         return f"{self.patient_id}-{self.name}"
 
+
 class Transactions(DateTimeFieldMixin):
     patient = models.ForeignKey(Patients, models.DO_NOTHING)
     doctor = models.ForeignKey(Doctors, models.DO_NOTHING)
     paid_amount = models.FloatField()
     pay_mode = models.CharField(max_length=20)
-    
+
     class Meta:
         db_table = "transactions"
 
@@ -226,6 +229,26 @@ class Consultation(DateTimeFieldMixin):
 
     class Meta:
         db_table = "consultations"
+
+    def save(self, *args, **kwargs):
+        if not self.id:
+            # ----------------------------Prescription Email to Patient Start--------------------------
+            doctor_full_name = f"{self.appointment.doctor.user.first_name} {self.appointment.doctor.user.last_name}"
+            subject = f"Your Prescription from {doctor_full_name}"
+            patient_email = self.appointment.patient.email
+            context = {
+                "doctor_name": doctor_full_name,
+                "patient_name": f"{self.appointment.patient.name}",
+                "prescription_date": f"{self.created}",
+                "patient_dob": f"{self.appointment.patient.dob}",
+                "clinic_name": f"{self.appointment.doctor.clinic_name}",
+                "clinic_contact_number": f"{self.appointment.doctor.clinic_contact_no}",
+                "prescription_details": f"{self.prescription}",
+            }
+            body = render_to_string("email/prescription.html", context=context)
+            send_email(subject, body, [patient_email])
+            # ----------------------------Prescription Email to Patient End--------------------------
+        super().save(*args, **kwargs)
 
 
 class NotePad(DateTimeFieldMixin):
