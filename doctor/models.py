@@ -101,24 +101,21 @@ class Patients(DateTimeFieldMixin):
     patient_id = models.AutoField(primary_key=True, editable=False)
     user = models.ForeignKey(Users, on_delete=models.CASCADE)
     name = models.CharField(max_length=50)
-    phone = models.CharField(max_length=15)
-    email = models.EmailField()
+    phone = models.CharField(max_length=15, null=True)
+    email = models.EmailField(null=True)
     dob = models.DateField()
     gender = models.CharField(max_length=20, choices=GENDER_CHOICES)
 
-    pre_health_issue = models.BooleanField()
+    pre_health_issue = models.BooleanField(default=False)
     pre_health_issue_text = models.TextField(null=True, blank=True)
 
-    treatment_undergoing = models.BooleanField()
+    treatment_undergoing = models.BooleanField(default=False)
     treatment_undergoing_text = models.TextField(null=True, blank=True)
 
-    treatment_allergies = models.BooleanField()
+    treatment_allergies = models.BooleanField(default=False)
     treatment_allergies_text = models.TextField(null=True, blank=True)
 
     additional_note = models.TextField(null=True, blank=True)
-
-    paid_amount = models.FloatField()
-    pay_mode = models.CharField(max_length=20)
 
     def age(self):
         if self.dob:
@@ -132,6 +129,17 @@ class Patients(DateTimeFieldMixin):
 
     def __str__(self):
         return f"{self.patient_id}-{self.name}"
+
+class Transactions(DateTimeFieldMixin):
+    patient = models.ForeignKey(Patients, models.DO_NOTHING)
+    paid_amount = models.FloatField()
+    pay_mode = models.CharField(max_length=20)
+    
+    class Meta:
+        db_table = "transactions"
+
+    def __str__(self):
+        return f"{self.id}-{self.patient}"
 
 
 class Prescriptions(DateTimeFieldMixin):

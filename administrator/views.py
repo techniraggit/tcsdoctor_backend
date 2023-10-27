@@ -32,6 +32,7 @@ from doctor.serializers import (  # Doctor Serializer and Models
     Appointments,
     AppointmentsSerializer,
     Availability,
+    Transactions,
 )
 from accounts.models import User
 from django.db.models import (
@@ -41,9 +42,175 @@ from django.db import transaction
 from django.forms.models import model_to_dict
 from datetime import datetime
 from doctor.models import DoctorAvailability
+from django.utils import timezone
 
 
+from datetime import timedelta
+from django.db.models import Count
+from django.db.models.functions import TruncDate
 # Create your views here.
+def get_percentage(today_total, yesterday_total):
+    try:
+        value = round(((today_total - yesterday_total) / yesterday_total), 2)
+    except:
+        value = 0.0
+    return value
+
+def get_start_end_dates_current_week():
+    today = datetime.today()
+    current_weekday = today.weekday()
+    start_date = today - timedelta(days=current_weekday)
+    end_date = start_date + timedelta(days=6)
+
+    return start_date.date(), end_date.date()
+class DashboardView(AdminViewMixin):
+    def get(self, request):
+        Doctors_obj = Doctors.objects.all()
+        Patients_obj = Patients.objects.all()
+        Appointments_obj = Appointments.objects.all()
+        
+        #------------------Utils---------------------------------
+        today_date = timezone.now()
+        yesterday_date = (today_date - timezone.timedelta(days=1))
+
+
+        #------------------Doctor---------------------------------
+        total_doctors = Doctors_obj.count()
+        today_new_doctors_added = Doctors_obj.filter(created__date=today_date.date()).count()
+        yesterday_total_doctors = Doctors_obj.filter(created__date=yesterday_date.date()).count()
+        incremented_doctor_percent = get_percentage(today_new_doctors_added, yesterday_total_doctors)
+
+        #------------------Patient---------------------------------
+        total_patients = Patients_obj.count()
+        today_new_patient_added = Patients_obj.filter(created__date=today_date.date()).count()
+        yesterday_total_patient = Patients_obj.filter(created__date=yesterday_date.date()).count()
+        incremented_patient_percent = get_percentage(today_new_patient_added, yesterday_total_patient)
+
+
+        #------------------Appointment---------------------------------
+        total_appointments = Appointments_obj.count()
+        today_new_appointment_added = Appointments_obj.filter(created__date=today_date.date()).count()
+        yesterday_total_appointment = Appointments_obj.filter(created__date=yesterday_date.date()).count()
+        incremented_appointment_percent = get_percentage(today_new_appointment_added, yesterday_total_appointment)
+
+        #------------------Total Revenue---------------------------------
+        start_date, end_date = get_start_end_dates_current_week()
+        dates_in_current_week = [start_date + timedelta(days=i) for i in range(7)]
+
+        transactions_obj = (
+            Transactions.objects
+            .filter(created__range=[start_date, end_date])
+            .values('created__date')
+            .annotate(total_paid=Sum('paid_amount'))
+            .order_by('created__date')
+        )
+
+        revenue = []
+        for date_entry in dates_in_current_week:
+            data = transactions_obj.filter(created__date=date_entry)
+            revenue.append(
+                {
+                    "day": date_entry.strftime("%A"),
+                    "total_paid": data.first().get("total_paid") if data else 0
+                }
+            )
+
+        #------------------Patient Appointment---------------------------------
+
+        # Get the current date and the last month date
+        current_date = timezone.now()
+        last_month_date = current_date - timedelta(days=current_date.day)
+
+        # Calculate the number of days in the current and last month
+        days_in_current_month = (current_date.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+        days_in_last_month = (last_month_date.replace(day=28) + timedelta(days=4)).replace(day=1) - timedelta(days=1)
+
+        # Generate a list of past and future days in the current month
+        past_days = [current_date - timedelta(days=i) for i in range(current_date.day)]
+        future_days = [current_date + timedelta(days=i + 1) for i in range(days_in_current_month.day - current_date.day)]
+        past_days.reverse()
+        all_days_current_month = past_days + future_days
+
+        # Generate a list of days in the last month
+        all_days_last_month = [last_month_date - timedelta(days=i) for i in range(days_in_last_month.day)]
+        all_days_last_month.reverse()
+
+        # Day-wise counts for the current month
+        current_month_appointment_counts = (
+            Appointments.objects.filter(
+                schedule_date__month=current_date.month,
+                schedule_date__year=current_date.year,
+            )
+            .annotate(day=TruncDate("schedule_date"))
+            .values("day")
+            .annotate(count=Count("appointment_id"))
+            .order_by("day")
+        )
+
+        # Day-wise counts for the last month
+        last_month_appointment_counts = (
+            Appointments.objects.filter(
+                schedule_date__month=last_month_date.month,
+                schedule_date__year=last_month_date.year,
+            )
+            .annotate(day=TruncDate("schedule_date"))
+            .values("day")
+            .annotate(count=Count("appointment_id"))
+            .order_by("day")
+        )
+
+        # Create dictionaries to hold the appointment counts
+        current_month_counts_dict = {entry["day"]: entry["count"] for entry in current_month_appointment_counts}
+        last_month_counts_dict = {entry["day"]: entry["count"] for entry in last_month_appointment_counts}
+
+        # Populate day-wise appointment counts for the current month
+        current_month_appointment_counts_with_zeros = [
+            {"day": day, "count": current_month_counts_dict.get(day.date(), 0)}
+            for day in all_days_current_month
+        ]
+
+        # Populate day-wise appointment counts for the last month
+        last_month_appointment_counts_with_zeros = [
+            {"day": day, "count": last_month_counts_dict.get(day.date(), 0)}
+            for day in all_days_last_month
+        ]
+
+        #------------------Patient Appointment---------------------------------
+
+
+
+
+        doctor = {
+            "total_doctors": total_doctors,
+            "today_new_doctors_added": today_new_doctors_added,
+            "incremented_doctor_percent": incremented_doctor_percent,
+        }
+
+        patient = {
+            "total_patients": total_patients,
+            "incremented_patient_percent": incremented_patient_percent,
+        }
+
+        appointment = {
+            "total_appointments": total_appointments,
+            "incremented_appointment_percent": incremented_appointment_percent,
+        }
+
+        appointment_graph = {
+            "current_month_gp": current_month_appointment_counts_with_zeros,
+            "last_month_gp": last_month_appointment_counts_with_zeros,
+        }
+
+        analytics_data = {
+            "doctor": doctor,
+            "patient": patient,
+            "appointment": appointment,
+            "revenue_graph": revenue,
+            "appointment_graph": appointment_graph,
+
+        }
+        return Response({"status": True, "data":analytics_data}, 200)
+
 def validate_time(start_time, end_time):
     try:
         start_time_obj = datetime.strptime(start_time, "%H:%M")

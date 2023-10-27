@@ -9,6 +9,7 @@ from doctor.models import (  # Doctor Models
     Consultation,
     NotePad,
     Availability,
+    Transactions,
 )
 from doctor.serializers import (  # Doctor Serializers
     AppointmentsSerializer,
@@ -247,24 +248,31 @@ def schedule_meeting(request):
                 users_obj.phone_number = user_phone_number
                 users_obj.save()
 
-                patient_obj = Patients.objects.create(
+                patient_obj, _ = Patients.objects.get_or_create(
                     user=users_obj,
                     name=patient_name,
-                    phone=patient_phone,
-                    email=patient_email,
                     dob=patient_dob,
                     gender=patient_gender,
+                )
+                patient_obj.phone=patient_phone
+                patient_obj.email=patient_email
+
+                patient_obj.pre_health_issue=pre_health_issue
+                patient_obj.pre_health_issue_text=pre_health_issue_text
+                patient_obj.treatment_undergoing=treatment_undergoing
+                patient_obj.treatment_undergoing_text=treatment_undergoing_text
+                patient_obj.treatment_allergies=treatment_allergies
+                patient_obj.treatment_allergies_text=treatment_allergies_text
+                patient_obj.additional_note=additional_note
+
+                patient_obj.save()
+
+                Transactions.objects.create(
+                    patient = patient_obj,
                     paid_amount=patient_paid_amount,
                     pay_mode=patient_pay_mode,
-                    pre_health_issue=pre_health_issue,
-                    pre_health_issue_text=pre_health_issue_text,
-                    treatment_undergoing=treatment_undergoing,
-                    treatment_undergoing_text=treatment_undergoing_text,
-                    treatment_allergies=treatment_allergies,
-                    treatment_allergies_text=treatment_allergies_text,
-                    additional_note=additional_note,
                 )
-                patient_obj.save()
+            
 
                 schedule_date_obj = datetime.strptime(
                     patient_schedule_date, "%Y-%m-%d %H:%M"
@@ -522,11 +530,11 @@ class PatientDetailView(DoctorViewMixin):
             )
 
         consultation_obj = Consultation.objects.filter(
-            appointment__patient__user__user_id=user_id,
-            appointment__doctor__user=request.user,
-            appointment__patient__name=name,
-            appointment__patient__dob=dob,
-            appointment__patient__gender=gender,
+            Q(appointment__patient__user__user_id=user_id)
+            & Q(appointment__doctor__user=request.user)
+            & Q(appointment__patient__name=name)
+            & Q(appointment__patient__dob=dob)
+            & Q(appointment__patient__gender=gender)
         )
 
         consultation_data = ConsultationSerializer(consultation_obj, many=True).data
