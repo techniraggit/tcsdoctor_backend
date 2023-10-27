@@ -443,9 +443,10 @@ class DoctorView(AdminViewMixin):
                 400,
             )
         
-        availability = json.loads(availability)
-
-        if not isinstance(availability, list):
+        try:
+            availability = json.loads(availability)
+        except:
+        # if not isinstance(availability, list):
             return Response(
                 {
                     "status": False,
@@ -636,7 +637,10 @@ class DoctorView(AdminViewMixin):
                 400,
             )
 
-        if not isinstance(availability, list):
+        try:
+            availability = json.loads(availability)
+        except:
+        # if not isinstance(availability, list):
             return Response(
                 {
                     "status": False,
@@ -644,8 +648,6 @@ class DoctorView(AdminViewMixin):
                 },
                 400,
             )
-
-        availability = json.loads(availability)
 
         for avail in availability:
             if not is_valid_date(
