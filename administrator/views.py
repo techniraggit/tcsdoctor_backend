@@ -230,7 +230,7 @@ class DoctorView(AdminViewMixin):
         if id:
             try:
                 query_set = Doctors.objects.select_related("user").get(user__id=id)
-                data = DoctorSerializer(query_set).data
+                doctor_profile = DoctorSerializer(query_set).data
 
                 #------------------Patient Appointment Graph Start---------------------------------
 
@@ -327,8 +327,8 @@ class DoctorView(AdminViewMixin):
                     "revenue": revenue,
                     "patient_appointment_graph": patient_appointment_graph
                 }
-                return Response({"status": True, "data": data, "graphs": graphs}, 200)
-            except:
+                return Response({"status": True, "data": doctor_profile, "graphs": graphs}, 200)
+            except Exception as e:
                 data = {}
                 return Response({"status": True, "data": data}, 200)
         query_set = Doctors.objects.select_related("user").all().order_by("-created")
@@ -581,9 +581,7 @@ class DoctorView(AdminViewMixin):
                 400,
             )
 
-        try:
-            availability = json.loads(availability)
-        except:
+        if not isinstance(availability, list):
             return Response(
                 {
                     "status": False,
@@ -614,24 +612,6 @@ class DoctorView(AdminViewMixin):
                     },
                     400,
                 )
-
-        # if not is_valid_date(start_working_hr, "%H:%M") or not is_valid_date(
-        #     end_working_hr, "%H:%M"
-        # ):
-        #     return Response(
-        #         {
-        #             "status": False,
-        #             "message": "Invalid time format. Please use a valid format for the time. (HH:MM)",
-        #         },
-        #         400,
-        #     )
-
-        # if not isinstance(working_days, list):
-        #     return Response(
-        #         {"status": False, "message": "Days off should be in Array"}, 400
-        #     )
-
-        # working_days = [working_day.strip() for working_day in working_days]
 
         try:
             salary = float(salary)
@@ -724,13 +704,21 @@ class DoctorView(AdminViewMixin):
                     working_days = [working_day.strip() for working_day in working_days]
                     start_working_hr = avail["start_working_hr"]
                     end_working_hr = avail["end_working_hr"]
-                    id = avail["id"]
+                    id = avail.get("id")
                     try:
-                        doctor_availability = DoctorAvailability.objects.get(pk=id)
-                        doctor_availability.working_days = working_days
-                        doctor_availability.start_working_hr = start_working_hr
-                        doctor_availability.end_working_hr = end_working_hr
-                        doctor_availability.save()
+                        if id:
+                            doctor_availability = DoctorAvailability.objects.get(pk=id)
+                            doctor_availability.working_days = working_days
+                            doctor_availability.start_working_hr = start_working_hr
+                            doctor_availability.end_working_hr = end_working_hr
+                            doctor_availability.save()
+                        else:
+                            DoctorAvailability.objects.create(
+                                doctor = doctor_obj,
+                                working_days = working_days,
+                                start_working_hr = start_working_hr,
+                                end_working_hr = end_working_hr,
+                            )
                     except:
                         continue
             return Response(
