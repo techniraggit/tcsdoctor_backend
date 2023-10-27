@@ -442,6 +442,8 @@ class DoctorView(AdminViewMixin):
                 },
                 400,
             )
+        
+        availability = json.loads(availability)
 
         if not isinstance(availability, list):
             return Response(
