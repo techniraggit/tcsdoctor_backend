@@ -32,8 +32,8 @@ class User(AbstractUser, DateTimeFieldMixin):
         return f"{self.id}"
 
     def get_otp(self):
-        self.otp = generate_otp()
-        cache.set(f"{self.id}{self.otp}", self.otp, 60 * 5)
+        self.otp = generate_otp(4)
+        cache.set(f"{self.id}{self.otp}", self.otp, 60 * 15)
         self.save()
         return True
 
