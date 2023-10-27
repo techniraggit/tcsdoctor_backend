@@ -31,7 +31,7 @@ from core.decorators import token_required
 from core.mixins import DoctorViewMixin
 from rest_framework.decorators import api_view
 from administrator.models import UserPushNotification
-from datetime import ( # Datetime
+from datetime import (  # Datetime
     datetime,
 )
 from django.db.models import (
@@ -216,16 +216,16 @@ def schedule_meeting(request):
                     dob=patient_dob,
                     gender=patient_gender,
                 )
-                patient_obj.phone=patient_phone
-                patient_obj.email=patient_email
+                patient_obj.phone = patient_phone
+                patient_obj.email = patient_email
 
-                patient_obj.pre_health_issue=pre_health_issue
-                patient_obj.pre_health_issue_text=pre_health_issue_text
-                patient_obj.treatment_undergoing=treatment_undergoing
-                patient_obj.treatment_undergoing_text=treatment_undergoing_text
-                patient_obj.treatment_allergies=treatment_allergies
-                patient_obj.treatment_allergies_text=treatment_allergies_text
-                patient_obj.additional_note=additional_note
+                patient_obj.pre_health_issue = pre_health_issue
+                patient_obj.pre_health_issue_text = pre_health_issue_text
+                patient_obj.treatment_undergoing = treatment_undergoing
+                patient_obj.treatment_undergoing_text = treatment_undergoing_text
+                patient_obj.treatment_allergies = treatment_allergies
+                patient_obj.treatment_allergies_text = treatment_allergies_text
+                patient_obj.additional_note = additional_note
 
                 patient_obj.save()
 
@@ -256,7 +256,7 @@ def schedule_meeting(request):
                     )
 
                 Transactions.objects.create(
-                    patient = patient_obj,
+                    patient=patient_obj,
                     doctor=availability_obj.doctor,
                     paid_amount=patient_paid_amount,
                     pay_mode=patient_pay_mode,
@@ -482,25 +482,41 @@ class PatientView(DoctorViewMixin):
 class PatientDetailView(DoctorViewMixin):
     def get(self, request):
         user_id = request.GET.get("user_id")
-        name = request.GET.get("name")
-        dob = request.GET.get("dob")
-        gender = request.GET.get("gender")
+        patient_id = request.GET.get("patient_id")
 
-        if not all([user_id, name, dob, gender]):
+        if not all([user_id, patient_id]):
             return Response(
                 {"status": False, "message": "required fields are missing"}, 400
             )
 
-        consultation_obj = Consultation.objects.filter(
-            Q(appointment__patient__user__user_id=user_id)
-            & Q(appointment__doctor__user=request.user)
-            & Q(appointment__patient__name=name)
-            & Q(appointment__patient__dob=dob)
-            & Q(appointment__patient__gender=gender)
-        )
+        patient_obj = Patients.objects.filter(
+            patient_id=patient_id, user__user_id=user_id
+        ).first()
+        if not patient_obj:
+            return Response({"status": False, "message": "Patient not found"}, 404)
+        appointments = Appointments.objects.filter(
+            patient=patient_obj, doctor__user=request.user
+        ).order_by("-schedule_date")
 
-        consultation_data = ConsultationSerializer(consultation_obj, many=True).data
-        return Response({"status": True, "data": consultation_data}, 200)
+        consultation_obj = Consultation.objects.filter(appointment__in=appointments)
+
+        consultation_data = ConsultationSerializer(
+            consultation_obj, many=True, fields=["appointment", "prescription"]
+        ).data
+        patient_data = PatientsSerializer(patient_obj, fields=["-user"]).data
+        appointments_data = {
+            "no_of_appointment": appointments.count(),
+            "date_time": appointments.first().schedule_date if appointments else "00",
+        }
+        return Response(
+            {
+                "status": True,
+                "consultation_data": consultation_data,
+                "patient_data": patient_data,
+                "appointments_data": appointments_data,
+            },
+            200,
+        )
 
 
 class ProfileView(DoctorViewMixin):
