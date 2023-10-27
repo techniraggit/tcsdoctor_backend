@@ -1,12 +1,18 @@
 from scripts.update_slots import UpdateSlot, DeleteSlot
-from datetime import timedelta
-from django.db.models import Max, Min
+from datetime import ( # Datetime
+    timedelta,
+    datetime,
+)
 import json
-from django.db.models import (
+from django.db.models import (  # django.db.models
     Sum,
     Case,
     When,
     IntegerField,
+    Count,
+    Q,
+    Max,
+    Min,
 )
 from utilities.pigeon.service import send_sms
 from openpyxl import Workbook
@@ -18,7 +24,7 @@ from rest_framework.decorators import api_view
 from administrator.models import PushNotification, UserPushNotification
 from administrator.serializers import PushNotificationSerializer
 from core.mixins import AdminViewMixin
-from utilities.utils import (
+from utilities.utils import (  # Utilities.utils
     is_valid_date,
     is_valid_email,
     is_valid_phone,
@@ -35,18 +41,9 @@ from doctor.serializers import (  # Doctor Serializer and Models
     Transactions,
 )
 from accounts.models import User
-from django.db.models import (
-    Q,
-)
 from django.db import transaction
-from django.forms.models import model_to_dict
-from datetime import datetime
 from doctor.models import DoctorAvailability
 from django.utils import timezone
-
-
-from datetime import timedelta
-from django.db.models import Count
 from django.db.models.functions import TruncDate
 
 
@@ -442,11 +439,11 @@ class DoctorView(AdminViewMixin):
                 },
                 400,
             )
-        
+
         try:
             availability = json.loads(availability)
         except:
-        # if not isinstance(availability, list):
+            # if not isinstance(availability, list):
             return Response(
                 {
                     "status": False,
@@ -640,7 +637,7 @@ class DoctorView(AdminViewMixin):
         try:
             availability = json.loads(availability)
         except:
-        # if not isinstance(availability, list):
+            # if not isinstance(availability, list):
             return Response(
                 {
                     "status": False,

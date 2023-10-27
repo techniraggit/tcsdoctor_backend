@@ -1,5 +1,3 @@
-from doctor.serializers import DoctorSerializer
-import requests
 from django.conf import settings
 from django.db import transaction
 from doctor.models import (  # Doctor Models
@@ -10,6 +8,7 @@ from doctor.models import (  # Doctor Models
     NotePad,
     Availability,
     Transactions,
+    Doctors,
 )
 from doctor.serializers import (  # Doctor Serializers
     AppointmentsSerializer,
@@ -18,8 +17,8 @@ from doctor.serializers import (  # Doctor Serializers
     Doctors,
     AvailabilitySerializer,
     ConsultationSerializer,
+    DoctorSerializer,
 )
-
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from utilities.utils import (  # Utils
@@ -32,50 +31,13 @@ from core.decorators import token_required
 from core.mixins import DoctorViewMixin
 from rest_framework.decorators import api_view
 from administrator.models import UserPushNotification
-from twilio.jwt.access_token import AccessToken
-from twilio.jwt.access_token.grants import VideoGrant
-from django.shortcuts import render
-from django.http import JsonResponse
-
-from datetime import datetime, timedelta
-from django.db.models import Q
-from django.conf import settings
-from django.db.models import Min, Max, F
-from doctor.models import Doctors
-
-sel = "2023-09-28 12:00"
-
-from django.forms.models import model_to_dict
-
-
-def get_available_doctor(selected_date):
-    date_obj = datetime.strptime(selected_date, "%Y-%m-%d %H:%M")
-
-    day = date_obj.strftime("%A")
-    time = date_obj.time()
-    date = date_obj.date()
-    added_time = date_obj + timedelta(minutes=15)
-
-    doctors_not_in_appointments = Doctors.objects.filter(
-        working_days__contains=[day],
-        start_working_hr__lte=time,
-        end_working_hr__gte=added_time,
-    ).exclude(appointments__schedule_date__range=(date_obj, added_time))
-
-    high_priority_doctor = doctors_not_in_appointments.filter(priority="high")
-    if high_priority_doctor:
-        return (high_priority_doctor.order_by("?").values_list("id", flat=True))[0]
-
-    medium_priority_doctor = doctors_not_in_appointments.filter(priority="medium")
-    if medium_priority_doctor:
-        return (medium_priority_doctor.order_by("?").values_list("id", flat=True))[0]
-
-    low_priority_doctor = doctors_not_in_appointments.filter(priority="low")
-    if low_priority_doctor:
-        return (low_priority_doctor.order_by("?").values_list("id", flat=True))[0]
-
-
-import time
+from datetime import ( # Datetime
+    datetime,
+)
+from django.db.models import (
+    F,
+    Q,
+)
 
 
 @token_required
