@@ -267,13 +267,6 @@ def schedule_meeting(request):
 
                 patient_obj.save()
 
-                Transactions.objects.create(
-                    patient = patient_obj,
-                    paid_amount=patient_paid_amount,
-                    pay_mode=patient_pay_mode,
-                )
-            
-
                 schedule_date_obj = datetime.strptime(
                     patient_schedule_date, "%Y-%m-%d %H:%M"
                 )
@@ -299,6 +292,13 @@ def schedule_meeting(request):
                         },
                         400,
                     )
+
+                Transactions.objects.create(
+                    patient = patient_obj,
+                    doctor=availability_obj.doctor,
+                    paid_amount=patient_paid_amount,
+                    pay_mode=patient_pay_mode,
+                )
 
                 appointment_obj = Appointments.objects.create(
                     patient=patient_obj,

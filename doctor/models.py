@@ -132,6 +132,7 @@ class Patients(DateTimeFieldMixin):
 
 class Transactions(DateTimeFieldMixin):
     patient = models.ForeignKey(Patients, models.DO_NOTHING)
+    doctor = models.ForeignKey(Doctors, models.DO_NOTHING)
     paid_amount = models.FloatField()
     pay_mode = models.CharField(max_length=20)
     
