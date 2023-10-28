@@ -1,3 +1,5 @@
+from utilities.pigeon.service import send_email
+from django.template.loader import render_to_string
 from django.conf import settings
 from django.db import transaction
 from doctor.models import (  # Doctor Models
@@ -586,10 +588,26 @@ class ConsultView(DoctorViewMixin):
 
         try:
             # NotePad.objects.create(room_name=room_name, notepad=notepad)
-            Consultation.objects.create(
+            consultation_obj = Consultation.objects.create(
                 prescription=notepad,
                 appointment=appointment_obj,
             )
+            # ----------------------------Prescription Email to Patient Start--------------------------
+            doctor_full_name = f"{appointment_obj.doctor.user.first_name} {appointment_obj.doctor.user.last_name}"
+            subject = f"Your Prescription from {doctor_full_name}"
+            patient_email = appointment_obj.patient.email
+            context = {
+                "doctor_name": doctor_full_name,
+                "patient_name": f"{appointment_obj.patient.name}",
+                "prescription_date": f"{consultation_obj.created}",
+                "patient_dob": f"{appointment_obj.patient.dob}",
+                "clinic_name": f"{appointment_obj.doctor.clinic_name}",
+                "clinic_contact_number": f"{appointment_obj.doctor.clinic_contact_no}",
+                "prescription_details": f"{consultation_obj.prescription}",
+            }
+            body = render_to_string("email/prescription.html", context=context)
+            send_email(subject, body, [patient_email])
+            # ----------------------------Prescription Email to Patient End--------------------------
             return Response(
                 {"status": True, "message": "Your submission was successful"}
             )
