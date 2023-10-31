@@ -254,6 +254,17 @@ def validate_time(start_time, end_time):
 class DoctorView(AdminViewMixin):
     def get(self, request):
         id = request.GET.get("id")
+        search_query = request.GET.get("search_query")
+        if search_query:
+            query_set = Doctors.objects.select_related("user").filter(
+                Q(user__first_name__icontains = search_query)
+                | Q(user__last_name__icontains = search_query)
+                | Q(user__email__icontains = search_query)
+                | Q(user__phone_number = search_query)
+            ).order_by("-created")
+            data = DoctorSerializer(query_set, many=True).data
+            return Response({"status": True, "data": data}, 200)
+
         if id:
             try:
                 query_set = Doctors.objects.select_related("user").get(user__id=id)
