@@ -260,7 +260,7 @@ class DoctorView(AdminViewMixin):
                 Q(user__first_name__icontains = search_query)
                 | Q(user__last_name__icontains = search_query)
                 | Q(user__email__icontains = search_query)
-                | Q(user__phone_number = search_query)
+                | Q(user__phone_number__icontains = search_query)
             ).order_by("-created")
             data = DoctorSerializer(query_set, many=True).data
             return Response({"status": True, "data": data}, 200)
