@@ -477,7 +477,7 @@ class PatientView(DoctorViewMixin):
             patients = Appointments.objects.filter(
                 doctor__user=request.user
             ).select_related("patient")
-        data = AppointmentsSerializer(patients, many=True, fields=["patient"]).data
+        data = AppointmentsSerializer(patients.order_by("-created"), many=True, fields=["patient"]).data
         return Response({"status": True, "data": data}, 200)
 
 
