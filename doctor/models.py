@@ -1,3 +1,13 @@
+from utilities.pigeon.service import send_sms
+from administrator.models import PushNotification, UserPushNotification
+from django.conf import settings
+from utilities.pigeon.templates import (
+    APPOINTMENT_RESCHEDULE_PATIENT,
+    APPOINTMENT_BOOK_PATIENT,
+    APPOINTMENT_CANCEL_PATIENT,
+    APPOINTMENT_REMINDER_MESSAGE,
+    APPOINTMENT_REMINDER_TITLE,
+)
 import uuid
 from datetime import date
 from django.core.validators import (
@@ -219,6 +229,61 @@ class Appointments(DateTimeFieldMixin):
 
     def __str__(self):
         return f"{self.appointment_id}"
+
+    def send_sms_on_status_change(self):
+        message = None
+        if self.status == "pending":
+            message = APPOINTMENT_BOOK_PATIENT.format(
+                user_name=self.patient.name,
+                appointment_date=self.schedule_date.date(),
+                appointment_time=self.schedule_date.time(),
+            )
+
+        elif self.status == "rescheduled":
+            message = APPOINTMENT_RESCHEDULE_PATIENT.format(
+                user_name=self.patient.name,
+                appointment_date=self.schedule_date.date(),
+                appointment_time=self.schedule_date.time(),
+            )
+
+        elif self.status == "cancelled":
+            message = APPOINTMENT_CANCEL_PATIENT.format(
+                user_name=self.patient.name,
+                appointment_date=self.schedule_date.date(),
+                appointment_time=self.schedule_date.time(),
+            )
+
+        if message:
+            send_sms(f"{self.patient.phone}", message)
+
+    def system_notification(self):
+        push_notification_obj = PushNotification.objects.create(
+            title=APPOINTMENT_REMINDER_TITLE,
+            message=APPOINTMENT_REMINDER_MESSAGE.format(
+                appointment_date=self.schedule_date.date(),
+                appointment_time=self.schedule_date.time(),
+            ),
+            notification_type="system",
+        )
+        push_notification_obj.save()
+
+        superuser = User.objects.filter(is_superuser=True).first()
+
+
+        if superuser:
+            user_push_notifications = [
+                UserPushNotification(user=self.doctor.user, notification=push_notification_obj),
+                UserPushNotification(user=superuser, notification=push_notification_obj),
+            ]
+
+            UserPushNotification.objects.bulk_create(user_push_notifications)
+
+    def save(self, *args, **kwargs):
+        """Send sms to doctor and Patient about change status"""
+        self.system_notification()
+        if settings.IS_PRODUCTION:
+            self.send_sms_on_status_change()
+        super(Appointments, self).save(*args, **kwargs)
 
 
 class Consultation(DateTimeFieldMixin):

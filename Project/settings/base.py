@@ -183,6 +183,7 @@ JWT_ALGORITHM = os.environ.get("JWT_ALGORITHM")
 # PROJECT CONFIGURATION
 NO_COST_CONSULT = os.environ.get("NO_COST_CONSULT")
 SLOT_DURATION = os.environ.get("SLOT_DURATION")
+IS_PRODUCTION = os.environ.get("IS_PRODUCTION", "").lower() == "true"
 
 # Twilio
 TWILIO_ACCOUNT_SID = os.environ.get("TWILIO_ACCOUNT_SID")
