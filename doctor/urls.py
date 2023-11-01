@@ -7,6 +7,7 @@ urlpatterns = [
     path("time_slots", views.time_slots),
     path("create_video_room", twilio_controller.create_video_room),
     path("schedule_meeting", views.schedule_meeting),
+    path("amount_payment", views.amount_payment),
     path("reschedule_meeting", views.reschedule_meeting),
     path("cancel_meeting", views.cancel_meeting),
     path("appointments", views.AppointmentView.as_view()),

@@ -35,6 +35,7 @@ from rest_framework.decorators import api_view
 from administrator.models import UserPushNotification
 from datetime import (  # Datetime
     datetime,
+    timedelta,
 )
 from django.db.models import (
     F,
@@ -257,12 +258,12 @@ def schedule_meeting(request):
                         400,
                     )
 
-                Transactions.objects.create(
-                    patient=patient_obj,
-                    doctor=availability_obj.doctor,
-                    paid_amount=patient_paid_amount,
-                    pay_mode=patient_pay_mode,
-                )
+                # Transactions.objects.create(
+                #     patient=patient_obj,
+                #     doctor=availability_obj.doctor,
+                #     paid_amount=patient_paid_amount,
+                #     pay_mode=patient_pay_mode,
+                # )
 
                 appointment_obj = Appointments.objects.create(
                     patient=patient_obj,
@@ -309,6 +310,43 @@ def schedule_meeting(request):
 
 
 @token_required
+@api_view(["POST"])
+def amount_payment(request):
+    if request.method == "POST":
+        trans_id = request.data.get("trans_id")
+        pay_mode = request.data.get("pay_mode")
+        paid_amount = request.data.get("paid_amount")
+        appointment_id = request.data.get("appointment_id")
+        if not all([trans_id, pay_mode, paid_amount, appointment_id]):
+            return Response(
+                {"status": False, "message": "Required fields are missing"}, 400
+            )
+
+        try:
+            with transaction.atomic():
+                appointment_obj = Appointments.objects.get(
+                    pk=appointment_id, payment_status="unpaid"
+                )
+                appointment_obj.status = "scheduled"
+                appointment_obj.payment_status = "paid"
+                Transactions.objects.create(
+                    appointment=appointment_obj,
+                    trans_id=trans_id,
+                    paid_amount=paid_amount,
+                    pay_mode=pay_mode,
+                )
+                appointment_obj.save()
+            return Response(
+                {"status": True, "message": "Payment successfully done"}, 200
+            )
+        except Appointments.DoesNotExist or Appointments.MultipleObjectsReturned:
+            return Response({"status": False, "message": "Appointment not found"}, 404)
+
+        except Exception as e:
+            return Response({"status": False, "message": f"{e}"}, 400)
+
+
+@token_required
 @api_view(["PATCH"])
 def reschedule_meeting(request):
     if request.method == "PATCH":
@@ -346,7 +384,24 @@ def reschedule_meeting(request):
                         400,
                     )
                 try:
-                    appointment_obj = Appointments.objects.get(pk=appointment_id)
+                    appointment_obj = Appointments.objects.get(
+                        pk=appointment_id, payment_status="paid"
+                    )
+                    if appointment_obj.is_attended:
+                        schedule_date = appointment_obj.schedule_date
+                        current_date = datetime.now()
+                        date_difference = current_date - schedule_date
+
+                        if date_difference > timedelta(days=7):
+                            return Response(
+                                {
+                                    "status": False,
+                                    "message": "You are not able to reschedule this appointment",
+                                },
+                                400,
+                            )
+                        else:
+                            return True
                 except:
                     return Response(
                         {"status": False, "message": "Appointment not found"}, 404
@@ -452,7 +507,14 @@ class AppointmentView(DoctorViewMixin):
         data = AppointmentsSerializer(
             query_set,
             many=True,
-            fields=["patient", "schedule_date", "status", "filter_by"],
+            fields=[
+                "appointment_id",
+                "room_name",
+                "patient",
+                "schedule_date",
+                "status",
+                "filter_by",
+            ],
         ).data
 
         display_data = {
@@ -477,7 +539,9 @@ class PatientView(DoctorViewMixin):
             patients = Appointments.objects.filter(
                 doctor__user=request.user
             ).select_related("patient")
-        data = AppointmentsSerializer(patients.order_by("-created"), many=True, fields=["patient"]).data
+        data = AppointmentsSerializer(
+            patients.order_by("-created"), many=True, fields=["patient"]
+        ).data
         return Response({"status": True, "data": data}, 200)
 
 
@@ -534,9 +598,11 @@ class ProfileView(DoctorViewMixin):
 
 class NotificationsView(DoctorViewMixin):
     def get(self, request):
-        notifications = UserPushNotification.objects.filter(
-            user=request.user
-        ).select_related("notification").order_by("-created")
+        notifications = (
+            UserPushNotification.objects.filter(user=request.user)
+            .select_related("notification")
+            .order_by("-created")
+        )
         push_notification = []
         for notification in notifications:
             push_notification.append(

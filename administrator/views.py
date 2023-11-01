@@ -360,7 +360,7 @@ class DoctorView(AdminViewMixin):
 
                 transactions_obj = (
                     Transactions.objects.filter(
-                        created__range=[start_date, end_date], doctor=query_set
+                        created__range=[start_date, end_date], appointment__doctor=query_set
                     )
                     .values("created__date")
                     .annotate(total_paid=Sum("paid_amount"))

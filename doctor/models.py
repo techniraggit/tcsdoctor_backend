@@ -141,19 +141,6 @@ class Patients(DateTimeFieldMixin):
         return f"{self.patient_id}-{self.name}"
 
 
-class Transactions(DateTimeFieldMixin):
-    patient = models.ForeignKey(Patients, models.DO_NOTHING)
-    doctor = models.ForeignKey(Doctors, models.DO_NOTHING)
-    paid_amount = models.FloatField()
-    pay_mode = models.CharField(max_length=20)
-
-    class Meta:
-        db_table = "transactions"
-
-    def __str__(self):
-        return f"{self.id}-{self.patient}"
-
-
 class Prescriptions(DateTimeFieldMixin):
     patient = models.ForeignKey(Patients, on_delete=models.CASCADE)
 
@@ -179,14 +166,21 @@ class Prescriptions(DateTimeFieldMixin):
 
 
 APPOINTMENT_STATUS_CHOICES = (
-    ("pending", "Pending"),
-    ("completed", "Completed"),
-    ("rescheduled", "Rescheduled"),
-    ("free_consultation", "Free Consultation"),
-    ("cancelled", "Cancelled"),
-    ("unanswered_patient", "Unanswered Patient"),
-    ("unanswered_doctor", "Unanswered Doctor"),
+    ("pending", "pending"),
+    ("scheduled", "scheduled"),
+    ("rescheduled", "rescheduled"),
+    ("completed", "completed"),
+    ("cancelled", "cancelled"),
+    ("free_scheduled", "free_scheduled"),
+    ("unanswered_patient", "unanswered_patient"),
+    ("unanswered_doctor", "unanswered_doctor"),
 )
+
+APPOINTMENT_PAYMENT_STATUS_CHOICES = (
+    ("paid", "paid"),
+    ("unpaid", "unpaid"),
+)
+
 
 
 class TimeSlot(models.Model):
@@ -223,6 +217,10 @@ class Appointments(DateTimeFieldMixin):
         max_length=50, choices=APPOINTMENT_STATUS_CHOICES, default="pending"
     )
     meeting_link = models.URLField()
+    access_token = models.TextField(null=True, blank=True)
+    payment_status = models.CharField(
+        max_length=50, choices=APPOINTMENT_PAYMENT_STATUS_CHOICES, default="unpaid"
+    )
 
     class Meta:
         db_table = "appointments"
@@ -232,7 +230,7 @@ class Appointments(DateTimeFieldMixin):
 
     def send_sms_on_status_change(self):
         message = None
-        if self.status == "pending":
+        if self.status == "scheduled":
             message = APPOINTMENT_BOOK_PATIENT.format(
                 user_name=self.patient.name,
                 appointment_date=self.schedule_date.date(),
@@ -280,11 +278,23 @@ class Appointments(DateTimeFieldMixin):
 
     def save(self, *args, **kwargs):
         """Send sms to doctor and Patient about change status"""
-        self.system_notification()
-        if settings.IS_PRODUCTION:
-            self.send_sms_on_status_change()
+        if self.status != "pending":
+            self.system_notification()
+            if settings.IS_PRODUCTION:
+                self.send_sms_on_status_change()
         super(Appointments, self).save(*args, **kwargs)
 
+class Transactions(DateTimeFieldMixin):
+    appointment = models.ForeignKey(Appointments, models.DO_NOTHING)
+    trans_id = models.CharField(max_length=50)
+    paid_amount = models.FloatField()
+    pay_mode = models.CharField(max_length=20)
+
+    class Meta:
+        db_table = "transactions"
+
+    def __str__(self):
+        return f"{self.id}-{self.patient}"
 
 class Consultation(DateTimeFieldMixin):
     appointment = models.ForeignKey(Appointments, on_delete=models.DO_NOTHING)
