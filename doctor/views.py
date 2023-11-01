@@ -536,7 +536,7 @@ class NotificationsView(DoctorViewMixin):
     def get(self, request):
         notifications = UserPushNotification.objects.filter(
             user=request.user
-        ).select_related("notification")
+        ).select_related("notification").order_by("-created")
         push_notification = []
         for notification in notifications:
             push_notification.append(

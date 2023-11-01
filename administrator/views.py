@@ -899,7 +899,7 @@ def get_all_doctors_email(request):
 class PushNotificationView(AdminViewMixin):
     def get(self, request):
         push_notifications = PushNotificationSerializer(
-            PushNotification.objects.all().order_by("-id"),
+            PushNotification.objects.all().order_by("-created"),
             fields=["-updated"],
             many=True,
         )
