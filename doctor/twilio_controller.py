@@ -7,8 +7,9 @@ def create_video_room(request):
     room_name = request.GET.get("room_name")
     if not room_name:
         return JsonResponse({"status": False, "message": "Room name not found"})
-    # room_name = f"consult_{uuid.uuid4()}"
-    identity = str(uuid.uuid4())
-    token = get_access_token(identity=identity, room_name=room_name)
 
-    return JsonResponse({"token": token, "room_name": room_name})
+    identity = str(uuid.uuid4())
+    status , token = get_access_token(identity=identity, room_name=room_name)
+    if status:
+        return JsonResponse({"status": status, "token": token, "room_name": room_name}, status=200)
+    return JsonResponse({"status": status, "message": "Token generation failed"}, status=500)

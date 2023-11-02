@@ -17,4 +17,5 @@ urlpatterns = [
     path("profile", views.ProfileView.as_view()),
     path("consult", views.ConsultView.as_view()),
     path("my_appointments", views.my_appointments),
+    path("user_verification", views.user_verification),
 ]

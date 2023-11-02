@@ -1,3 +1,4 @@
+from utilities.utils import generate_otp
 from utilities.pigeon.service import send_email
 from django.template.loader import render_to_string
 from django.conf import settings
@@ -99,7 +100,6 @@ def schedule_meeting(request):
         user_required_fields = [
             "id",
             "first_name",
-            # "last_name",
             "email",
             "phone_number",
         ]
@@ -109,8 +109,6 @@ def schedule_meeting(request):
             "email",
             "dob",
             "gender",
-            "paid_amount",
-            "pay_mode",
             "schedule_date",
         ]
         required = False
@@ -140,8 +138,7 @@ def schedule_meeting(request):
         patient_email = data["patient"].get("email")
         patient_dob = data["patient"].get("dob")
         patient_gender = data["patient"].get("gender")
-        patient_paid_amount = data["patient"].get("paid_amount")
-        patient_pay_mode = data["patient"].get("pay_mode")
+
         patient_schedule_date = data["patient"].get("schedule_date")
         pre_health_issue = data["patient"].get("pre_health_issue", "").lower() == "yes"
         pre_health_issue_text = data["patient"].get("pre_health_issue_text")
@@ -194,7 +191,7 @@ def schedule_meeting(request):
         try:
             patient_paid_amount = float(patient_paid_amount)
         except:
-            # if not isinstance(patient_paid_amount, int or float):
+
             return Response(
                 {
                     "status": False,
@@ -258,13 +255,6 @@ def schedule_meeting(request):
                         400,
                     )
 
-                # Transactions.objects.create(
-                #     patient=patient_obj,
-                #     doctor=availability_obj.doctor,
-                #     paid_amount=patient_paid_amount,
-                #     pay_mode=patient_pay_mode,
-                # )
-
                 appointment_obj = Appointments.objects.create(
                     patient=patient_obj,
                     doctor=availability_obj.doctor,
@@ -273,6 +263,7 @@ def schedule_meeting(request):
                     room_name=get_room_no(),
                     no_cost_consult=settings.NO_COST_CONSULT,
                     meeting_link="http://0.0.0.0:9000/backend/accounts/user/",
+                    pass_code=generate_otp(4),
                 )
                 availability_obj.is_booked = True
                 availability_obj.save()
@@ -418,6 +409,7 @@ def reschedule_meeting(request):
                 appointment_obj.schedule_date = schedule_date_obj
                 appointment_obj.slot_key = availability_obj.id
                 appointment_obj.status = "rescheduled"
+                appointment_obj.pass_code = generate_otp(4)
                 appointment_obj.save()
 
                 availability_obj.is_booked = True
@@ -653,11 +645,11 @@ class ConsultView(DoctorViewMixin):
             return Response({"status": False, "message": "Room not found"}, 404)
 
         try:
-            # NotePad.objects.create(room_name=room_name, notepad=notepad)
             consultation_obj = Consultation.objects.create(
                 prescription=notepad,
                 appointment=appointment_obj,
             )
+
             # ----------------------------Prescription Email to Patient Start--------------------------
             doctor_full_name = f"{appointment_obj.doctor.user.first_name} {appointment_obj.doctor.user.last_name}"
             subject = f"Your Prescription from {doctor_full_name}"
@@ -681,11 +673,6 @@ class ConsultView(DoctorViewMixin):
             return Response({"status": False, "message": str(e)}, 400)
 
 
-class AppointmentViewTest(APIView):
-    def post(self, request):
-        pass
-
-
 @token_required
 @api_view(["GET"])
 def my_appointments(request):
@@ -698,3 +685,33 @@ def my_appointments(request):
     appointment_obj = Appointments.objects.filter(patient__user__user_id=id)
     data = AppointmentsSerializer(appointment_obj, many=True).data
     return Response({"status": True, "data": data}, 200)
+
+
+@token_required
+@api_view(["POST"])
+def user_verification(request):
+    if request.method == "POST":
+        room_name = request.data.get("room_name")
+        pass_code = request.data.get("pass_code")
+
+        if not all([room_name, pass_code]):
+            return Response({"status": False, "message": "Required fields are missing"}, 400)
+
+        try:
+            Appointments_obj = Appointments.objects.get(room_name=room_name)
+            if Appointments_obj.payment_status != "paid":
+                return Response({"status": False, "message": "Meeting payment is pending"}, 400)
+
+            if Appointments_obj.pass_code == pass_code:
+                data = {
+                    "id": Appointments_obj.pk,
+                    "schedule_date": Appointments_obj.schedule_date
+                }
+                return Response({"status": True, "message": "User authenticated successfully", "data": data}, 200)
+            return Response({"status": False, "message": "Invalid provided passcode"}, 401)
+
+        except Appointments.DoesNotExist or Appointments.MultipleObjectsReturned:
+            return Response({"status": False, "message": "Meeting not found"}, 404)
+
+        except Exception as e:
+            return Response({"status": False, "message": str(e)}, 400)

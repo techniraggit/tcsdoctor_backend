@@ -19,6 +19,7 @@ Dear {user_name},
 Great news! Your appointment has been successfully booked.
 📅 Date: {appointment_date}
 ⌚ Time: {appointment_time}
+PassCode: {pass_code}
 Please review "My appointment" in your EYEMYEYE Login for appointment details.
 We look forward to serving you.
 Regards,
@@ -42,6 +43,7 @@ We understand that plans can change.
 Your appointment has been successfully rescheduled to a new date and time.
 📅 Date: {appointment_date}
 ⌚ Time: {appointment_time}
+PassCode: {pass_code}
 Your updated appointment details are as follows.
 If you have any questions or need further assistance,
 please contact us at support email.

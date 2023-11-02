@@ -26,7 +26,7 @@ priority_choices = (
     ("medium", "Medium"),
     ("low", "Low"),
 )
-
+from utilities.utils import generate_otp
 
 class Doctors(DateTimeFieldMixin):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
@@ -221,6 +221,7 @@ class Appointments(DateTimeFieldMixin):
     payment_status = models.CharField(
         max_length=50, choices=APPOINTMENT_PAYMENT_STATUS_CHOICES, default="unpaid"
     )
+    pass_code = models.CharField(max_length=6)
 
     class Meta:
         db_table = "appointments"
@@ -235,6 +236,7 @@ class Appointments(DateTimeFieldMixin):
                 user_name=self.patient.name,
                 appointment_date=self.schedule_date.date(),
                 appointment_time=self.schedule_date.time(),
+                pass_code=self.pass_code,
             )
 
         elif self.status == "rescheduled":
@@ -242,6 +244,7 @@ class Appointments(DateTimeFieldMixin):
                 user_name=self.patient.name,
                 appointment_date=self.schedule_date.date(),
                 appointment_time=self.schedule_date.time(),
+                pass_code=self.pass_code,
             )
 
         elif self.status == "cancelled":
