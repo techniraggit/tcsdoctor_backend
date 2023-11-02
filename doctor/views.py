@@ -248,10 +248,10 @@ def schedule_meeting(request):
                     patient=patient_obj,
                     doctor=availability_obj.doctor,
                     schedule_date=schedule_date_obj,
+                    initial_schedule_date = schedule_date_obj,
                     slot_key=availability_obj.id,
                     room_name=get_room_no(),
-                    no_cost_consult=settings.NO_COST_CONSULT,
-                    meeting_link="http://0.0.0.0:9000/backend/accounts/user/",
+                    free_meetings_count=settings.NO_COST_CONSULT,
                     pass_code=generate_otp(4),
                 )
                 availability_obj.is_booked = True
@@ -262,12 +262,12 @@ def schedule_meeting(request):
                     "patient": appointment_obj.patient.patient_id,
                     "doctor": appointment_obj.doctor.user.id,
                     "schedule_date": appointment_obj.schedule_date,
+                    "initial_schedule_date": appointment_obj.initial_schedule_date,
                     "slot_key": appointment_obj.slot_key,
                     "room_name": appointment_obj.room_name,
-                    "no_cost_consult": appointment_obj.no_cost_consult,
+                    "free_meetings_count": appointment_obj.free_meetings_count,
                     "status": appointment_obj.status,
-                    "is_attended": appointment_obj.is_attended,
-                    "meeting_link": appointment_obj.meeting_link,
+                    "is_join": appointment_obj.is_join,
                 }
 
                 return Response(
@@ -367,7 +367,7 @@ def reschedule_meeting(request):
                     appointment_obj = Appointments.objects.get(
                         pk=appointment_id, payment_status="paid"
                     )
-                    if appointment_obj.is_attended:
+                    if appointment_obj.is_join:
                         schedule_date = appointment_obj.schedule_date
                         current_date = datetime.now()
                         date_difference = current_date - schedule_date

@@ -209,15 +209,16 @@ class Appointments(DateTimeFieldMixin):
     patient = models.ForeignKey(Patients, on_delete=models.CASCADE)
     doctor = models.ForeignKey(Doctors, on_delete=models.CASCADE)
     schedule_date = models.DateTimeField()
+    initial_schedule_date = models.DateTimeField()
     slot_key = models.CharField(max_length=5)
     room_name = models.CharField(max_length=50)
-    no_cost_consult = models.IntegerField(default=0)
-    is_attended = models.BooleanField(default=False)
+    free_meetings_count = models.IntegerField(default=0)
+    is_join = models.BooleanField(default=False)
+    is_free = models.BooleanField(default=True)
     status = models.CharField(
         max_length=50, choices=APPOINTMENT_STATUS_CHOICES, default="pending"
     )
-    meeting_link = models.URLField()
-    access_token = models.TextField(null=True, blank=True)
+
     payment_status = models.CharField(
         max_length=50, choices=APPOINTMENT_PAYMENT_STATUS_CHOICES, default="unpaid"
     )
