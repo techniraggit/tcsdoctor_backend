@@ -188,17 +188,6 @@ def schedule_meeting(request):
                 400,
             )
 
-        try:
-            patient_paid_amount = float(patient_paid_amount)
-        except:
-
-            return Response(
-                {
-                    "status": False,
-                    "message": "Invalid paid amount. Please provide a valid paid amount",
-                },
-                400,
-            )
 
         try:
             with transaction.atomic():
