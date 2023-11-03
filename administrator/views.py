@@ -1011,7 +1011,7 @@ class DownloadReportView(AdminViewMixin):
             worksheet.column_dimensions["D"].width = 15  # GENDER
             worksheet.column_dimensions["E"].width = 10  # PAID AMOUNT
             worksheet.column_dimensions["F"].width = 10  # PAY MODE
-            worksheet.column_dimensions["G"].width = 10  # PAY MODE
+            worksheet.column_dimensions["G"].width = 10  # TRANS ID
             worksheet.column_dimensions["H"].width = 22  # SCHEDULE DATE
             worksheet.column_dimensions["I"].width = 18  # STATUS
             worksheet.column_dimensions["J"].width = 20  # MEETING LINK
