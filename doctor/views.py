@@ -225,6 +225,7 @@ def schedule_meeting(request):
                 availability_obj = (
                     Availability.objects.select_for_update()
                     .filter(
+                        doctor__is_active=True,
                         date=schedule_date_obj.date(),
                         time_slot__start_time=schedule_date_obj.time().strftime(
                             "%H:%M"
