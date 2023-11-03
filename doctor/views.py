@@ -365,9 +365,11 @@ def reschedule_meeting(request):
                         400,
                     )
                 try:
-                    appointment_obj = Appointments.objects.get(
-                        pk=appointment_id, payment_status="paid"
-                    )
+                    appointment_obj = Appointments.objects.get(pk=appointment_id)
+
+                    if appointment_obj.payment_status != "paid":
+                        return Response({"status": False, "message": "Payment pending for this appointment, please make payment and try again later"}, 400)
+
                     if appointment_obj.is_join:
                         initial_schedule_date = appointment_obj.initial_schedule_date
                         current_date = datetime.now()
