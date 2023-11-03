@@ -15,7 +15,7 @@ def UpdateSlot(day=7):
     ).values_list("doctor__user__id", flat=True)
     day_name = date_obj.strftime("%A")
     doctors = (
-        DoctorAvailability.objects.filter(working_days__contains=[day_name])
+        DoctorAvailability.objects.filter(working_days__contains=[day_name], doctor__is_active=True)
         .select_related("doctor")
         .exclude(doctor__user__id__in=doctors_on_leave)
     )
