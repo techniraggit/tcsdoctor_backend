@@ -383,9 +383,9 @@ def reschedule_meeting(request):
                             )
                         else:
                             return True
-                except:
+                except Exception as e:
                     return Response(
-                        {"status": False, "message": "Appointment not found"}, 404
+                        {"status": False, "message": "Appointment not found", "error": str(e)}, 404
                     )
 
                 # Release preassigned doctor
