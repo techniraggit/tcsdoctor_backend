@@ -975,6 +975,7 @@ class DownloadReportView(AdminViewMixin):
             appointments = Appointments.objects.filter(
                 doctor__user__id=doctor_id
             ).select_related("patient")
+            all_trans = Transactions.objects.all()
             appointments_headers = [
                 "Name",
                 "Phone#",
@@ -982,6 +983,7 @@ class DownloadReportView(AdminViewMixin):
                 "Gender",
                 "Paid Amount",
                 "Pay Mode",
+                "Transaction Id"
                 "Scheduled Date",
                 "Current Status",
                 "Meeting Link",
@@ -989,13 +991,15 @@ class DownloadReportView(AdminViewMixin):
 
             worksheet.append(appointments_headers)
             for appointment in appointments:
+                transaction_data = all_trans.filter(appointment=appointment).first()
                 row = [
                     appointment.patient.name,
                     appointment.patient.phone,
                     appointment.patient.dob.strftime("%b %d, %Y"),
                     appointment.patient.gender.capitalize(),
-                    appointment.patient.paid_amount,
-                    appointment.patient.pay_mode,
+                    transaction_data.paid_amount if transaction_data else 0,
+                    transaction_data.pay_mode if transaction_data else 0,
+                    transaction_data.trans_id if transaction_data else 0,
                     appointment.schedule_date.strftime("%b %d, %Y %I:%M %p"),
                     appointment.status,
                     appointment.meeting_link,
@@ -1007,9 +1011,10 @@ class DownloadReportView(AdminViewMixin):
             worksheet.column_dimensions["D"].width = 15  # GENDER
             worksheet.column_dimensions["E"].width = 10  # PAID AMOUNT
             worksheet.column_dimensions["F"].width = 10  # PAY MODE
-            worksheet.column_dimensions["G"].width = 22  # SCHEDULE DATE
-            worksheet.column_dimensions["H"].width = 18  # STATUS
-            worksheet.column_dimensions["I"].width = 20  # MEETING LINK
+            worksheet.column_dimensions["G"].width = 10  # PAY MODE
+            worksheet.column_dimensions["H"].width = 22  # SCHEDULE DATE
+            worksheet.column_dimensions["I"].width = 18  # STATUS
+            worksheet.column_dimensions["J"].width = 20  # MEETING LINK
             virtual_excel_file = save_virtual_workbook(workbook)
             response[
                 "Content-Disposition"
