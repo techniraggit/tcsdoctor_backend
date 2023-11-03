@@ -224,6 +224,7 @@ class Appointments(DateTimeFieldMixin):
         max_length=50, choices=APPOINTMENT_PAYMENT_STATUS_CHOICES, default="unpaid"
     )
     pass_code = models.CharField(max_length=6)
+    meeting_link = models.URLField(null=True, blank=True)
 
     class Meta:
         db_table = "appointments"
@@ -290,6 +291,7 @@ class Appointments(DateTimeFieldMixin):
             self.system_notification()
             if settings.IS_PRODUCTION:
                 self.send_sms_on_status_change()
+        self.meeting_link = f"{os.environ.get('TCS_USER_FRONTEND')}{self.room_name}"
         super(Appointments, self).save(*args, **kwargs)
 
 class Transactions(DateTimeFieldMixin):
