@@ -19,6 +19,7 @@ class UsersAdmin(admin.ModelAdmin):
     list_filter = ["user_id", "email", "phone_number"]
     search_fields = ["user_id", "email", "phone_number"]
 
+
 @admin.register(Patients)
 class PatientsAdmin(admin.ModelAdmin):
     list_display = [
@@ -44,8 +45,9 @@ class AppointmentsAdmin(admin.ModelAdmin):
         "schedule_date",
         "payment_status",
         "is_join",
+        "room_name",
     ]
-    search_fields = ["appointment_id", "status", "is_join"]
+    search_fields = ["appointment_id", "status", "is_join", "room_name"]
     list_filter = ["status", "is_join"]
 
 
@@ -95,6 +97,7 @@ class AvailabilityAdmin(admin.ModelAdmin):
 class DoctorLeaveAdmin(admin.ModelAdmin):
     list_display = ["doctor", "leave_date", "is_sanction"]
     list_filter = ["doctor", "is_sanction"]
+
 
 @admin.register(Transactions)
 class TransactionsAdmin(admin.ModelAdmin):
