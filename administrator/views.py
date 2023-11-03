@@ -983,7 +983,7 @@ class DownloadReportView(AdminViewMixin):
                 "Gender",
                 "Paid Amount",
                 "Pay Mode",
-                "Transaction Id"
+                "Transaction Id",
                 "Scheduled Date",
                 "Current Status",
                 "Meeting Link",
