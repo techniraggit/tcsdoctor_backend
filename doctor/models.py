@@ -1,3 +1,4 @@
+import os
 from utilities.pigeon.service import send_sms
 from administrator.models import PushNotification, UserPushNotification
 from django.conf import settings
@@ -232,12 +233,14 @@ class Appointments(DateTimeFieldMixin):
 
     def send_sms_on_status_change(self):
         message = None
+        meeting_url=f"{os.environ.get('TCS_USER_FRONTEND')}{self.room_name}"
         if self.status == "scheduled":
             message = APPOINTMENT_BOOK_PATIENT.format(
                 user_name=self.patient.name,
                 appointment_date=self.schedule_date.date(),
                 appointment_time=self.schedule_date.time(),
                 pass_code=self.pass_code,
+                meeting_url = meeting_url,
             )
 
         elif self.status == "rescheduled":
@@ -246,6 +249,7 @@ class Appointments(DateTimeFieldMixin):
                 appointment_date=self.schedule_date.date(),
                 appointment_time=self.schedule_date.time(),
                 pass_code=self.pass_code,
+                meeting_url=meeting_url,
             )
 
         elif self.status == "cancelled":

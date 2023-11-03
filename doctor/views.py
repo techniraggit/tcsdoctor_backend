@@ -90,7 +90,7 @@ def time_slots(request):
 
     return Response({"status": True, "data": avail})
 
-
+import os
 @token_required
 @api_view(["POST"])
 def schedule_meeting(request):
@@ -268,6 +268,7 @@ def schedule_meeting(request):
                     "free_meetings_count": appointment_obj.free_meetings_count,
                     "status": appointment_obj.status,
                     "is_join": appointment_obj.is_join,
+                    "meeting_url": f"{os.environ.get('TCS_USER_FRONTEND')}{appointment_obj.room_name}",
                 }
 
                 return Response(
@@ -368,9 +369,9 @@ def reschedule_meeting(request):
                         pk=appointment_id, payment_status="paid"
                     )
                     if appointment_obj.is_join:
-                        schedule_date = appointment_obj.schedule_date
+                        initial_schedule_date = appointment_obj.initial_schedule_date
                         current_date = datetime.now()
-                        date_difference = current_date - schedule_date
+                        date_difference = current_date - initial_schedule_date
 
                         if date_difference > timedelta(days=7):
                             return Response(
