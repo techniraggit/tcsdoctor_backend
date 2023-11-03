@@ -257,6 +257,7 @@ def schedule_meeting(request):
                 )
                 availability_obj.is_booked = True
                 availability_obj.save()
+                appointment_obj.save()
 
                 data = {
                     "appointment_id": appointment_obj.appointment_id,
