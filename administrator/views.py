@@ -1221,11 +1221,61 @@ class DownloadReportView(AdminViewMixin):
 
 class AppointmentListView(AdminViewMixin):
     def get(self, request):
+        status = request.GET.get("status")
+        from_date = request.GET.get("from_date")
+        to_date = request.GET.get("to_date")
         query_set = (
             Appointments.objects.all()
             .select_related("doctor", "patient")
             .order_by("-created")
         )
+
+        if status:
+            status = str(status).lower()
+            if status not in ["scheduled", "rescheduled", "completed"]:
+                return Response(
+                    {
+                        "status": False,
+                        "message": "This status is not recognized as valid in our system",
+                    },
+                    400,
+                )
+            query_set = query_set.filter(status=status)
+            data = AppointmentsSerializer(query_set, many=True).data
+            return Response({"status": True, "data": data}, 200)
+
+        if from_date and to_date:
+            if not is_valid_date(to_date, "%Y-%m-%d") and not is_valid_date(
+                from_date, "%Y-%m-%d"
+            ):
+                return Response(
+                    {"status": False, "message": "Provided date format is not valid"}
+                )
+            query_set = query_set.filter(
+                initial_schedule_date__date__lte=to_date,
+                initial_schedule_date__date__gte=from_date,
+            )
+            data = AppointmentsSerializer(query_set, many=True).data
+            return Response({"status": True, "data": data}, 200)
+
+        if from_date:
+            if not is_valid_date(from_date, "%Y-%m-%d"):
+                return Response(
+                    {"status": False, "message": "Provided date format is not valid"}
+                )
+            query_set = query_set.filter(initial_schedule_date__date__gte=from_date)
+            data = AppointmentsSerializer(query_set, many=True).data
+            return Response({"status": True, "data": data}, 200)
+
+        if to_date:
+            if not is_valid_date(to_date, "%Y-%m-%d"):
+                return Response(
+                    {"status": False, "message": "Provided date format is not valid"}
+                )
+            query_set = query_set.filter(initial_schedule_date__date__lte=to_date)
+            data = AppointmentsSerializer(query_set, many=True).data
+            return Response({"status": True, "data": data}, 200)
+
         data = AppointmentsSerializer(query_set, many=True).data
         return Response({"status": True, "data": data}, 200)
 
