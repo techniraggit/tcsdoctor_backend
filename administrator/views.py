@@ -831,7 +831,7 @@ class DoctorView(AdminViewMixin):
 
 class PatientView(AdminViewMixin):
     def get(self, request):
-        query_set = Patients.objects.all().select_related("user")
+        query_set = Patients.objects.all().select_related("user").order_by("-created")
         data = PatientsSerializer(query_set, many=True).data
         return Response({"status": True, "data": data})
 
@@ -869,9 +869,9 @@ class AppointmentView(AdminViewMixin):
                 )
             query_set = Appointments.objects.filter(
                 doctor__user__id=doctor_id, status=search_query
-            )
+            ).order_by("-created")
         else:
-            query_set = Appointments.objects.filter(doctor__id=doctor_id)
+            query_set = Appointments.objects.filter(doctor__id=doctor_id).order_by("-created")
 
         data = AppointmentsSerializer(query_set, many=True).data
         return Response({"status": True, "data": data})
@@ -974,7 +974,7 @@ class DownloadReportView(AdminViewMixin):
                 return Response({"status": False, "message": "Doctor id required"}, 400)
             appointments = Appointments.objects.filter(
                 doctor__user__id=doctor_id
-            ).select_related("patient")
+            ).select_related("patient").order_by("-created")
             all_trans = Transactions.objects.all()
             appointments_headers = [
                 "Name",
@@ -1060,10 +1060,10 @@ class DownloadReportView(AdminViewMixin):
 
                 row_query_set = Appointments.objects.filter(
                     doctor__user__id__in=ids
-                ).order_by("doctor__user__created")
+                ).order_by("-created")
             else:
                 row_query_set = Appointments.objects.all().order_by(
-                    "doctor__user__created"
+                    "-created"
                 )
 
             queryset = row_query_set.values(
@@ -1208,7 +1208,7 @@ class AppointmentListView(AdminViewMixin):
         query_set = (
             Appointments.objects.all()
             .select_related("doctor", "patient")
-            .order_by("-schedule_date")
+            .order_by("-created")
         )
         data = AppointmentsSerializer(query_set, many=True).data
         return Response({"status": True, "data": data}, 200)

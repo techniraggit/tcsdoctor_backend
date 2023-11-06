@@ -464,7 +464,7 @@ class AppointmentView(DoctorViewMixin):
         search_query = (request.GET.get("search_query", "")).lower()
         list_of_available_search_query = ["pending", "completed", "rescheduled"]
         filter_by_date = request.GET.get("date")
-        Appointments_obj = Appointments.objects.filter(doctor__user=request.user)
+        Appointments_obj = Appointments.objects.filter(doctor__user=request.user).order_by("-created")
 
         if search_query:
             if search_query not in list_of_available_search_query:
@@ -548,7 +548,7 @@ class PatientDetailView(DoctorViewMixin):
             return Response({"status": False, "message": "Patient not found"}, 404)
         appointments = Appointments.objects.filter(
             patient=patient_obj, doctor__user=request.user
-        ).order_by("-schedule_date")
+        ).order_by("-created")
 
         consultation_obj = Consultation.objects.filter(appointment__in=appointments)
 
@@ -676,7 +676,7 @@ def my_appointments(request):
             {"status": False, "message": "Required fields are missing"}, 400
         )
 
-    appointment_obj = Appointments.objects.filter(patient__user__user_id=id)
+    appointment_obj = Appointments.objects.filter(patient__user__user_id=id).order_by("-created")
     data = AppointmentsSerializer(appointment_obj, many=True).data
     return Response({"status": True, "data": data}, 200)
 
