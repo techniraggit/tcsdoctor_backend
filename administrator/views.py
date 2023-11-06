@@ -1,5 +1,5 @@
 from scripts.update_slots import UpdateSlot, DeleteSlot
-from datetime import ( # Datetime
+from datetime import (  # Datetime
     timedelta,
     datetime,
 )
@@ -21,8 +21,15 @@ from openpyxl.writer.excel import save_virtual_workbook
 from utilities.pigeon.templates import WELCOME
 from core.decorators import admin_required
 from rest_framework.decorators import api_view
-from administrator.models import PushNotification, UserPushNotification
-from administrator.serializers import PushNotificationSerializer
+from administrator.models import (  # Admin Models
+    PushNotification,
+    UserPushNotification,
+    UserPaymentPrice,
+)
+from administrator.serializers import (  # Admin Serializer
+    PushNotificationSerializer,
+    UserPaymentPriceSerializer,
+)
 from core.mixins import AdminViewMixin
 from utilities.utils import (  # Utilities.utils
     is_valid_date,
@@ -30,19 +37,21 @@ from utilities.utils import (  # Utilities.utils
     is_valid_phone,
 )
 from rest_framework.response import Response
-from doctor.serializers import (  # Doctor Serializer and Models
+from doctor.serializers import (  # Doctor Serializers
     DoctorSerializer,
-    Doctors,
     PatientsSerializer,
+    AppointmentsSerializer,
+)
+from doctor.models import (  # Doctor Models
+    Doctors,
     Patients,
     Appointments,
-    AppointmentsSerializer,
     Availability,
     Transactions,
+    DoctorAvailability,
 )
 from accounts.models import User
 from django.db import transaction
-from doctor.models import DoctorAvailability
 from django.utils import timezone
 from django.db.models.functions import TruncDate
 
@@ -256,12 +265,16 @@ class DoctorView(AdminViewMixin):
         id = request.GET.get("id")
         search_query = request.GET.get("search_query")
         if search_query:
-            query_set = Doctors.objects.select_related("user").filter(
-                Q(user__first_name__icontains = search_query)
-                | Q(user__last_name__icontains = search_query)
-                | Q(user__email__icontains = search_query)
-                | Q(user__phone_number__icontains = search_query)
-            ).order_by("-created")
+            query_set = (
+                Doctors.objects.select_related("user")
+                .filter(
+                    Q(user__first_name__icontains=search_query)
+                    | Q(user__last_name__icontains=search_query)
+                    | Q(user__email__icontains=search_query)
+                    | Q(user__phone_number__icontains=search_query)
+                )
+                .order_by("-created")
+            )
             data = DoctorSerializer(query_set, many=True).data
             return Response({"status": True, "data": data}, 200)
 
@@ -360,7 +373,8 @@ class DoctorView(AdminViewMixin):
 
                 transactions_obj = (
                     Transactions.objects.filter(
-                        created__range=[start_date, end_date], appointment__doctor=query_set
+                        created__range=[start_date, end_date],
+                        appointment__doctor=query_set,
                     )
                     .values("created__date")
                     .annotate(total_paid=Sum("paid_amount"))
@@ -871,7 +885,9 @@ class AppointmentView(AdminViewMixin):
                 doctor__user__id=doctor_id, status=search_query
             ).order_by("-created")
         else:
-            query_set = Appointments.objects.filter(doctor__id=doctor_id).order_by("-created")
+            query_set = Appointments.objects.filter(doctor__id=doctor_id).order_by(
+                "-created"
+            )
 
         data = AppointmentsSerializer(query_set, many=True).data
         return Response({"status": True, "data": data})
@@ -972,9 +988,11 @@ class DownloadReportView(AdminViewMixin):
             doctor_id = request.GET.get("doctor_id")
             if not doctor_id:
                 return Response({"status": False, "message": "Doctor id required"}, 400)
-            appointments = Appointments.objects.filter(
-                doctor__user__id=doctor_id
-            ).select_related("patient").order_by("-created")
+            appointments = (
+                Appointments.objects.filter(doctor__user__id=doctor_id)
+                .select_related("patient")
+                .order_by("-created")
+            )
             all_trans = Transactions.objects.all()
             appointments_headers = [
                 "Name",
@@ -1062,9 +1080,7 @@ class DownloadReportView(AdminViewMixin):
                     doctor__user__id__in=ids
                 ).order_by("-created")
             else:
-                row_query_set = Appointments.objects.all().order_by(
-                    "-created"
-                )
+                row_query_set = Appointments.objects.all().order_by("-created")
 
             queryset = row_query_set.values(
                 "doctor__user__first_name",
@@ -1293,3 +1309,29 @@ class SlotInfoView(AdminViewMixin):
             )
         except Exception as e:
             return Response({"status": False, "message": str(e)}, 400)
+
+
+class UserPaymentPriceView(AdminViewMixin):
+    def get(self, request):
+        user_payments = UserPaymentPrice.objects.order_by("-id")
+        user_payments_data = UserPaymentPriceSerializer(user_payments, many=True).data
+        return Response({"status": True, "data": user_payments_data})
+
+    def post(self, request):
+        price = request.data.get("price")
+        if price is None:
+            return Response({"status": False, "message": "Price is required"}, 400)
+
+        if not isinstance(price, (float, int)):
+            return Response(
+                {
+                    "status": False,
+                    "message": "The price should be a floating-point or integer value",
+                },
+                400,
+            )
+
+        UserPaymentPrice.objects.create(price=price, created_by=request.user)
+        return Response(
+            {"status": True, "message": "Price has been successfully added"}, 201
+        )

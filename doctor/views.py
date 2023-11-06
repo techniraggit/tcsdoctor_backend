@@ -33,7 +33,8 @@ from utilities.utils import (  # Utils
 from core.decorators import token_required
 from core.mixins import DoctorViewMixin
 from rest_framework.decorators import api_view
-from administrator.models import UserPushNotification
+from administrator.models import UserPushNotification, UserPaymentPrice  # Admin models
+from administrator.serializers import UserPaymentPriceSerializer  # Admin Serializers
 from datetime import (  # Datetime
     datetime,
     timedelta,
@@ -90,7 +91,10 @@ def time_slots(request):
 
     return Response({"status": True, "data": avail})
 
+
 import os
+
+
 @token_required
 @api_view(["POST"])
 def schedule_meeting(request):
@@ -188,7 +192,6 @@ def schedule_meeting(request):
                 400,
             )
 
-
         try:
             with transaction.atomic():
                 users_obj, _ = Users.objects.get_or_create(user_id=user_id)
@@ -249,7 +252,7 @@ def schedule_meeting(request):
                     patient=patient_obj,
                     doctor=availability_obj.doctor,
                     schedule_date=schedule_date_obj,
-                    initial_schedule_date = schedule_date_obj,
+                    initial_schedule_date=schedule_date_obj,
                     slot_key=availability_obj.id,
                     room_name=get_room_no(),
                     free_meetings_count=settings.NO_COST_CONSULT,
@@ -370,7 +373,13 @@ def reschedule_meeting(request):
                     appointment_obj = Appointments.objects.get(pk=appointment_id)
 
                     if appointment_obj.payment_status != "paid":
-                        return Response({"status": False, "message": "Payment pending for this appointment, please make payment and try again later"}, 400)
+                        return Response(
+                            {
+                                "status": False,
+                                "message": "Payment pending for this appointment, please make payment and try again later",
+                            },
+                            400,
+                        )
 
                     if appointment_obj.is_join:
                         initial_schedule_date = appointment_obj.initial_schedule_date
@@ -389,7 +398,12 @@ def reschedule_meeting(request):
                             return True
                 except Exception as e:
                     return Response(
-                        {"status": False, "message": "Appointment not found", "error": str(e)}, 404
+                        {
+                            "status": False,
+                            "message": "Appointment not found",
+                            "error": str(e),
+                        },
+                        404,
                     )
 
                 # Release preassigned doctor
@@ -464,7 +478,9 @@ class AppointmentView(DoctorViewMixin):
         search_query = (request.GET.get("search_query", "")).lower()
         list_of_available_search_query = ["scheduled", "completed", "rescheduled"]
         filter_by_date = request.GET.get("date")
-        Appointments_obj = Appointments.objects.filter(doctor__user=request.user).order_by("-created")
+        Appointments_obj = Appointments.objects.filter(
+            doctor__user=request.user
+        ).order_by("-created")
 
         if search_query:
             if search_query not in list_of_available_search_query:
@@ -475,11 +491,15 @@ class AppointmentView(DoctorViewMixin):
                     }
                 )
             if search_query == "scheduled":
-                query_set = Appointments_obj.filter(status=search_query, schedule_date__date__gte=datetime.now().date())
+                query_set = Appointments_obj.filter(
+                    status=search_query, schedule_date__date__gte=datetime.now().date()
+                )
             elif search_query == "completed":
                 query_set = Appointments_obj.filter(status=search_query)
             elif search_query == "rescheduled":
-                query_set = Appointments_obj.filter(status=search_query, schedule_date__date__gte=datetime.now().date())
+                query_set = Appointments_obj.filter(
+                    status=search_query, schedule_date__date__gte=datetime.now().date()
+                )
 
         elif filter_by_date:
             if not is_valid_date(filter_by_date, "%Y-%m-%d"):
@@ -681,7 +701,9 @@ def my_appointments(request):
             {"status": False, "message": "Required fields are missing"}, 400
         )
 
-    appointment_obj = Appointments.objects.filter(patient__user__user_id=id).order_by("-created")
+    appointment_obj = Appointments.objects.filter(patient__user__user_id=id).order_by(
+        "-created"
+    )
     data = AppointmentsSerializer(appointment_obj, many=True).data
     return Response({"status": True, "data": data}, 200)
 
@@ -694,23 +716,44 @@ def user_verification(request):
         pass_code = request.data.get("pass_code")
 
         if not all([room_name, pass_code]):
-            return Response({"status": False, "message": "Required fields are missing"}, 400)
+            return Response(
+                {"status": False, "message": "Required fields are missing"}, 400
+            )
 
         try:
             Appointments_obj = Appointments.objects.get(room_name=room_name)
             if Appointments_obj.payment_status != "paid":
-                return Response({"status": False, "message": "Meeting payment is pending"}, 400)
+                return Response(
+                    {"status": False, "message": "Meeting payment is pending"}, 400
+                )
 
             if Appointments_obj.pass_code == pass_code:
                 data = {
                     "id": Appointments_obj.pk,
-                    "schedule_date": Appointments_obj.schedule_date
+                    "schedule_date": Appointments_obj.schedule_date,
                 }
-                return Response({"status": True, "message": "User authenticated successfully", "data": data}, 200)
-            return Response({"status": False, "message": "Invalid provided passcode"}, 401)
+                return Response(
+                    {
+                        "status": True,
+                        "message": "User authenticated successfully",
+                        "data": data,
+                    },
+                    200,
+                )
+            return Response(
+                {"status": False, "message": "Invalid provided passcode"}, 401
+            )
 
         except Appointments.DoesNotExist or Appointments.MultipleObjectsReturned:
             return Response({"status": False, "message": "Meeting not found"}, 404)
 
         except Exception as e:
             return Response({"status": False, "message": str(e)}, 400)
+
+
+@token_required
+@api_view(["GET"])
+def user_payment_price(request):
+    prices = UserPaymentPrice.objects.order_by("-id").first()
+    data = UserPaymentPriceSerializer(prices, fields=["price"]).data
+    return Response({"status": True, "data": data}, 200)

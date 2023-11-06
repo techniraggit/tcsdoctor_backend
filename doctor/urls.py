@@ -18,4 +18,5 @@ urlpatterns = [
     path("consult", views.ConsultView.as_view()),
     path("my_appointments", views.my_appointments),
     path("user_verification", views.user_verification),
+    path("user_payment_price", views.user_payment_price),
 ]

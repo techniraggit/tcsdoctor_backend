@@ -37,3 +37,16 @@ class UserPushNotification(DateTimeFieldMixin):
 
     def __str__(self):
         return f"{self.user} - {self.notification.title}"
+
+
+class UserPaymentPrice(DateTimeFieldMixin):
+    price = models.FloatField()
+    created_by = models.ForeignKey(
+        User, on_delete=models.DO_NOTHING, null=True, blank=True
+    )
+
+    class Meta:
+        db_table = "user_payment_price"
+
+    def __str__(self):
+        return f"{self.id} - {self.price}"
