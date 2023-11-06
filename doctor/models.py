@@ -172,6 +172,7 @@ APPOINTMENT_STATUS_CHOICES = (
     ("rescheduled", "rescheduled"),
     ("completed", "completed"),
     ("cancelled", "cancelled"),
+    ("expired", "expired"),
     ("free_scheduled", "free_scheduled"),
     ("unanswered_patient", "unanswered_patient"),
     ("unanswered_doctor", "unanswered_doctor"),
@@ -225,7 +226,7 @@ class Appointments(DateTimeFieldMixin):
     )
     is_attend_by_user = models.BooleanField(default=False)
     is_attend_by_doctor = models.BooleanField(default=False)
-    pass_code = models.CharField(max_length=6)
+    pass_code = models.CharField(max_length=6, null=True, blank=True)
     meeting_link = models.URLField(null=True, blank=True)
     previous_status = models.CharField(
         max_length=50, choices=APPOINTMENT_STATUS_CHOICES, default="pending"

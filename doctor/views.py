@@ -533,7 +533,7 @@ class AppointmentView(DoctorViewMixin):
         display_data = {
             "number_of_appointments": Appointments_obj.count(),
             "unanswered_patient": Appointments_obj.filter(
-                status="unanswered_patient"
+                is_attend_by_user = False, is_attend_by_doctor=True
             ).count(),
         }
         return Response(
