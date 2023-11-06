@@ -462,7 +462,7 @@ def cancel_meeting(request):
 class AppointmentView(DoctorViewMixin):
     def get(self, request):
         search_query = (request.GET.get("search_query", "")).lower()
-        list_of_available_search_query = ["pending", "completed", "rescheduled"]
+        list_of_available_search_query = ["scheduled", "completed", "rescheduled"]
         filter_by_date = request.GET.get("date")
         Appointments_obj = Appointments.objects.filter(doctor__user=request.user).order_by("-created")
 
@@ -474,7 +474,12 @@ class AppointmentView(DoctorViewMixin):
                         "message": f"Invalid status provided. Please use one of the following: {', '.join(list_of_available_search_query)}",
                     }
                 )
-            query_set = Appointments_obj.filter(status=search_query)
+            if search_query == "scheduled":
+                query_set = Appointments_obj.filter(status=search_query, schedule_date__date__gte=datetime.now().date())
+            elif search_query == "completed":
+                query_set = Appointments_obj.filter(status=search_query)
+            elif search_query == "rescheduled":
+                query_set = Appointments_obj.filter(status=search_query, schedule_date__date__gte=datetime.now().date())
 
         elif filter_by_date:
             if not is_valid_date(filter_by_date, "%Y-%m-%d"):
