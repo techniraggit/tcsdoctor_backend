@@ -10,8 +10,8 @@ def update_appointments():
     ).exclude(status="expired")
     completed_appointments = appointments_obj.filter(status="completed")
     incomplete_appointments = appointments_obj.exclude(status="completed")
-    completed_appointments.update(meeting_link="", pass_code="")
-    incomplete_appointments.update(status="expired", meeting_link="", pass_code="")
+    completed_appointments.update(meeting_link="", pass_code="", room_name="")
+    incomplete_appointments.update(status="expired", meeting_link="", pass_code="", room_name="")
 
 if __name__ == '__main__':
     update_appointments()
