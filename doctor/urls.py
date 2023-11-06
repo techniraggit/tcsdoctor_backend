@@ -19,4 +19,6 @@ urlpatterns = [
     path("my_appointments", views.my_appointments),
     path("user_verification", views.user_verification),
     path("user_payment_price", views.user_payment_price),
+    path("validate_call_user", views.validate_call_user),
+    path("validate_call_doctor", views.ValidateCallDoctorView.as_view()),
 ]

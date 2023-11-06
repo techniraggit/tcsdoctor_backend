@@ -757,3 +757,32 @@ def user_payment_price(request):
     prices = UserPaymentPrice.objects.order_by("-id").first()
     data = UserPaymentPriceSerializer(prices, fields=["price"]).data
     return Response({"status": True, "data": data}, 200)
+
+
+@token_required
+@api_view(["GET"])
+def validate_call_user(request):
+    room_name = request.GET.get("room_name")
+    if not room_name:
+        return Response({"status": False, "message": "room name required"}, 400)
+    try:
+        Appointments_obj = Appointments.objects.get(room_name=room_name)
+        Appointments_obj.is_attend_by_user = True
+        Appointments_obj.save()
+        return Response({"status": True, "message": "updated successfully"}, 200)
+    except:
+        return Response({"status": False, "message": "Meeting not found"}, 404)
+
+
+class ValidateCallDoctorView(DoctorViewMixin):
+    def get(self, request):
+        room_name = request.GET.get("room_name")
+        if not room_name:
+            return Response({"status": False, "message": "room name required"}, 400)
+        try:
+            Appointments_obj = Appointments.objects.get(room_name=room_name)
+            Appointments_obj.is_attend_by_doctor = True
+            Appointments_obj.save()
+            return Response({"status": True, "message": "updated successfully"}, 200)
+        except:
+            return Response({"status": False, "message": "Meeting not found"}, 404)

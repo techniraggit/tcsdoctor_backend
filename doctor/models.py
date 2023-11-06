@@ -223,8 +223,13 @@ class Appointments(DateTimeFieldMixin):
     payment_status = models.CharField(
         max_length=50, choices=APPOINTMENT_PAYMENT_STATUS_CHOICES, default="unpaid"
     )
+    is_attend_by_user = models.BooleanField(default=False)
+    is_attend_by_doctor = models.BooleanField(default=False)
     pass_code = models.CharField(max_length=6)
     meeting_link = models.URLField(null=True, blank=True)
+    previous_status = models.CharField(
+        max_length=50, choices=APPOINTMENT_STATUS_CHOICES, default="pending"
+    )
 
     class Meta:
         db_table = "appointments"
@@ -287,10 +292,11 @@ class Appointments(DateTimeFieldMixin):
 
     def save(self, *args, **kwargs):
         """Send sms to doctor and Patient about change status"""
-        if self.status != "pending":
+        if self.status != "pending" and self.status != self.previous_status:
             self.system_notification()
             if settings.IS_PRODUCTION:
                 self.send_sms_on_status_change()
+        self.previous_status = self.status
         self.meeting_link = f"{os.environ.get('TCS_USER_FRONTEND')}{self.room_name}"
         super(Appointments, self).save(*args, **kwargs)
 
