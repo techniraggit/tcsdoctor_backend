@@ -71,9 +71,11 @@ def time_slots(request):
     if parsed_date == current_date_time.date():
         avail = (
             Availability.objects.filter(
+                doctor__is_active=True,
                 date=parsed_date,
                 is_booked=False,
                 time_slot__start_time__gt=current_date_time.time(),
+
             )
             .distinct()
             .order_by("time_slot__start_time")
