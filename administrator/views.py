@@ -1392,11 +1392,59 @@ from rest_framework.views import APIView
 
 class AppointmentExport(APIView):
     def get(self, request):
-        query_set = (
+        status = request.GET.get("status")
+        from_date = request.GET.get("from_date")
+        to_date = request.GET.get("to_date")
+
+        base_query_set = (
             Appointments.objects.all()
             .select_related("doctor", "patient")
             .order_by("-created")
         )
+
+        if status:
+            status = str(status).lower()
+            if status not in ["scheduled", "rescheduled", "completed", "expired"]:
+                return Response(
+                    {
+                        "status": False,
+                        "message": "This status is not recognized as valid in our system",
+                    },
+                    400,
+                )
+            query_set = base_query_set.filter(status=status)
+
+        if from_date and to_date:
+            if not is_valid_date(to_date, "%Y-%m-%d") and not is_valid_date(
+                from_date, "%Y-%m-%d"
+            ):
+                return Response(
+                    {"status": False, "message": "Provided date format is not valid"}
+                )
+            query_set = base_query_set.filter(
+                initial_schedule_date__date__lte=to_date,
+                initial_schedule_date__date__gte=from_date,
+            )
+
+        if from_date:
+            if not is_valid_date(from_date, "%Y-%m-%d"):
+                return Response(
+                    {"status": False, "message": "Provided date format is not valid"}
+                )
+            query_set = base_query_set.filter(
+                initial_schedule_date__date__gte=from_date
+            )
+
+        if to_date:
+            if not is_valid_date(to_date, "%Y-%m-%d"):
+                return Response(
+                    {"status": False, "message": "Provided date format is not valid"}
+                )
+            query_set = base_query_set.filter(initial_schedule_date__date__lte=to_date)
+
+        if not all([status, from_date, to_date]):
+            query_set = base_query_set
+
         all_trans = Transactions.objects.all()
         headers = [
             "Patient Name",
@@ -1410,7 +1458,7 @@ class AppointmentExport(APIView):
             "Paid Amount",
             "Pay Mode",
             "Trans ID",
-            "Created"
+            "Created",
         ]
         workbook = Workbook()
         worksheet = workbook.active
@@ -1436,18 +1484,18 @@ class AppointmentExport(APIView):
                 appointment.created.strftime("%b %d, %Y %I:%M %p"),
             ]
             worksheet.append(row)
-        worksheet.column_dimensions["A"].width = 15 #Patient Name",
-        worksheet.column_dimensions["B"].width = 10 #Gender",
-        worksheet.column_dimensions["C"].width = 15 #DOB",
-        worksheet.column_dimensions["D"].width = 22 #Date & Time",
-        worksheet.column_dimensions["E"].width = 15 #Doctor Name",
-        worksheet.column_dimensions["F"].width = 20 #Email",
-        worksheet.column_dimensions["G"].width = 13 #Mobile",
-        worksheet.column_dimensions["H"].width = 10 #Status",
-        worksheet.column_dimensions["I"].width = 13 #Paid Amount",
-        worksheet.column_dimensions["J"].width = 10 #Pay Mode",
-        worksheet.column_dimensions["K"].width = 10 #Trans ID",
-        worksheet.column_dimensions["L"].width = 22 #Created",
+        worksheet.column_dimensions["A"].width = 15  # Patient Name",
+        worksheet.column_dimensions["B"].width = 10  # Gender",
+        worksheet.column_dimensions["C"].width = 15  # DOB",
+        worksheet.column_dimensions["D"].width = 22  # Date & Time",
+        worksheet.column_dimensions["E"].width = 15  # Doctor Name",
+        worksheet.column_dimensions["F"].width = 20  # Email",
+        worksheet.column_dimensions["G"].width = 13  # Mobile",
+        worksheet.column_dimensions["H"].width = 10  # Status",
+        worksheet.column_dimensions["I"].width = 13  # Paid Amount",
+        worksheet.column_dimensions["J"].width = 10  # Pay Mode",
+        worksheet.column_dimensions["K"].width = 10  # Trans ID",
+        worksheet.column_dimensions["L"].width = 22  # Created",
         virtual_excel_file = save_virtual_workbook(workbook)
         response[
             "Content-Disposition"
