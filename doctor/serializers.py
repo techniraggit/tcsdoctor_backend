@@ -69,7 +69,8 @@ class AppointmentsSerializer(BaseSerializer):
 
     class Meta:
         model = Appointments
-        fields = "__all__"
+        # fields = "__all__"
+        exclude = ('previous_status',)
 
 
 class AvailabilitySerializer(BaseSerializer):

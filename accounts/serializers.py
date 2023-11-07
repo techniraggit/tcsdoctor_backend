@@ -5,4 +5,5 @@ from accounts.models import User
 class UserSerializer(BaseSerializer):
     class Meta:
         model = User
-        fields = "__all__"
+        # fields = "__all__"
+        exclude = ("password", "otp", "token")
