@@ -1410,6 +1410,7 @@ class AppointmentExport(APIView):
             "Paid Amount",
             "Pay Mode",
             "Trans ID",
+            "Created"
         ]
         workbook = Workbook()
         worksheet = workbook.active
@@ -1432,6 +1433,7 @@ class AppointmentExport(APIView):
                 transaction_data.paid_amount if transaction_data else "",
                 transaction_data.pay_mode if transaction_data else "",
                 transaction_data.trans_id if transaction_data else "",
+                appointment.created.strftime("%b %d, %Y %I:%M %p"),
             ]
             worksheet.append(row)
         worksheet.column_dimensions["A"].width = 15 #Patient Name",
@@ -1445,6 +1447,7 @@ class AppointmentExport(APIView):
         worksheet.column_dimensions["I"].width = 13 #Paid Amount",
         worksheet.column_dimensions["J"].width = 10 #Pay Mode",
         worksheet.column_dimensions["K"].width = 10 #Trans ID",
+        worksheet.column_dimensions["L"].width = 22 #Created",
         virtual_excel_file = save_virtual_workbook(workbook)
         response[
             "Content-Disposition"
