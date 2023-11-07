@@ -1387,10 +1387,7 @@ class UserPaymentPriceView(AdminViewMixin):
         )
 
 
-from rest_framework.views import APIView
-
-
-class AppointmentExport(APIView):
+class AppointmentExport(AdminViewMixin):
     def get(self, request):
         status = request.GET.get("status")
         from_date = request.GET.get("from_date")
@@ -1431,9 +1428,7 @@ class AppointmentExport(APIView):
                 return Response(
                     {"status": False, "message": "Provided date format is not valid"}
                 )
-            query_set = query_set.filter(
-                initial_schedule_date__date__gte=from_date
-            )
+            query_set = query_set.filter(initial_schedule_date__date__gte=from_date)
 
         if to_date and not from_date:
             if not is_valid_date(to_date, "%Y-%m-%d"):
