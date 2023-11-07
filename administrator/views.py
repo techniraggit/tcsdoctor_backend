@@ -1396,7 +1396,7 @@ class AppointmentExport(APIView):
         from_date = request.GET.get("from_date")
         to_date = request.GET.get("to_date")
 
-        base_query_set = (
+        query_set = (
             Appointments.objects.all()
             .select_related("doctor", "patient")
             .order_by("-created")
@@ -1412,7 +1412,7 @@ class AppointmentExport(APIView):
                     },
                     400,
                 )
-            query_set = base_query_set.filter(status=status)
+            query_set = query_set.filter(status=status)
 
         if from_date and to_date:
             if not is_valid_date(to_date, "%Y-%m-%d") and not is_valid_date(
@@ -1421,29 +1421,26 @@ class AppointmentExport(APIView):
                 return Response(
                     {"status": False, "message": "Provided date format is not valid"}
                 )
-            query_set = base_query_set.filter(
+            query_set = query_set.filter(
                 initial_schedule_date__date__lte=to_date,
                 initial_schedule_date__date__gte=from_date,
             )
 
-        if from_date:
+        if from_date and not to_date:
             if not is_valid_date(from_date, "%Y-%m-%d"):
                 return Response(
                     {"status": False, "message": "Provided date format is not valid"}
                 )
-            query_set = base_query_set.filter(
+            query_set = query_set.filter(
                 initial_schedule_date__date__gte=from_date
             )
 
-        if to_date:
+        if to_date and not from_date:
             if not is_valid_date(to_date, "%Y-%m-%d"):
                 return Response(
                     {"status": False, "message": "Provided date format is not valid"}
                 )
-            query_set = base_query_set.filter(initial_schedule_date__date__lte=to_date)
-
-        if not all([status, from_date, to_date]):
-            query_set = base_query_set
+            query_set = query_set.filter(initial_schedule_date__date__lte=to_date)
 
         all_trans = Transactions.objects.all()
         headers = [
