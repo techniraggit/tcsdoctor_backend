@@ -14,4 +14,5 @@ urlpatterns = [
     path("appointment-list", views.AppointmentListView.as_view()),
     path("slots_information", views.SlotInfoView.as_view()),
     path("user_payment_price", views.UserPaymentPriceView.as_view()),
+    path("appointment-export", views.AppointmentExport.as_view()),
 ]

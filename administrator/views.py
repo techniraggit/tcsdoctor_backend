@@ -1385,3 +1385,69 @@ class UserPaymentPriceView(AdminViewMixin):
         return Response(
             {"status": True, "message": "Price has been successfully added"}, 201
         )
+
+
+from rest_framework.views import APIView
+
+
+class AppointmentExport(APIView):
+    def get(self, request):
+        query_set = (
+            Appointments.objects.all()
+            .select_related("doctor", "patient")
+            .order_by("-created")
+        )
+        all_trans = Transactions.objects.all()
+        headers = [
+            "Patient Name",
+            "Gender",
+            "DOB",
+            "Date & Time",
+            "Doctor Name",
+            "Email",
+            "Mobile",
+            "Status",
+            "Paid Amount",
+            "Pay Mode",
+            "Trans ID",
+        ]
+        workbook = Workbook()
+        worksheet = workbook.active
+        response = HttpResponse(
+            content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+
+        worksheet.append(headers)
+        for appointment in query_set:
+            transaction_data = all_trans.filter(appointment=appointment).first()
+            row = [
+                appointment.patient.name,
+                appointment.patient.gender.capitalize(),
+                appointment.patient.dob.strftime("%b %d, %Y"),
+                appointment.schedule_date.strftime("%b %d, %Y %I:%M %p"),
+                f"{appointment.doctor.user.first_name} {appointment.doctor.user.last_name}",
+                appointment.patient.email,
+                appointment.patient.phone,
+                appointment.status,
+                transaction_data.paid_amount if transaction_data else 0,
+                transaction_data.pay_mode if transaction_data else 0,
+                transaction_data.trans_id if transaction_data else 0,
+            ]
+            worksheet.append(row)
+        worksheet.column_dimensions["A"].width = 20  # Patient Name
+        worksheet.column_dimensions["B"].width = 15  # Date & Time
+        worksheet.column_dimensions["C"].width = 15  # Doctor Name
+        worksheet.column_dimensions["D"].width = 15  # Email
+        worksheet.column_dimensions["E"].width = 10  # Mobile
+        worksheet.column_dimensions["F"].width = 10  # Status
+        worksheet.column_dimensions["G"].width = 10  # PAID AMOUNT
+        worksheet.column_dimensions["H"].width = 10  # PAY MODE
+        worksheet.column_dimensions["I"].width = 10  # TRANS ID
+
+        virtual_excel_file = save_virtual_workbook(workbook)
+        response[
+            "Content-Disposition"
+        ] = f"attachment; filename=appointment_report.xlsx"
+
+        response.write(virtual_excel_file)
+        return response
