@@ -1,9 +1,10 @@
 from project_setup import *
 from django.utils import timezone
+from datetime import datetime, timedelta
 from doctor.models import Appointments
 
 def update_appointments():
-    current_time = timezone.now()
+    current_time = (datetime.now() - timedelta(minutes=15))
 
     appointments_obj = Appointments.objects.filter(
         schedule_date__lt=current_time,
