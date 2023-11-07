@@ -174,8 +174,6 @@ APPOINTMENT_STATUS_CHOICES = (
     ("cancelled", "cancelled"),
     ("expired", "expired"),
     ("free_scheduled", "free_scheduled"),
-    ("unanswered_patient", "unanswered_patient"),
-    ("unanswered_doctor", "unanswered_doctor"),
 )
 
 APPOINTMENT_PAYMENT_STATUS_CHOICES = (
