@@ -1435,14 +1435,14 @@ class AppointmentExport(APIView):
             ]
             worksheet.append(row)
         worksheet.column_dimensions["A"].width = 15 #Patient Name",
-        worksheet.column_dimensions["B"].width = 5 #Gender",
-        worksheet.column_dimensions["C"].width = 10 #DOB",
-        worksheet.column_dimensions["D"].width = 20 #Date & Time",
+        worksheet.column_dimensions["B"].width = 10 #Gender",
+        worksheet.column_dimensions["C"].width = 15 #DOB",
+        worksheet.column_dimensions["D"].width = 22 #Date & Time",
         worksheet.column_dimensions["E"].width = 15 #Doctor Name",
-        worksheet.column_dimensions["F"].width = 15 #Email",
+        worksheet.column_dimensions["F"].width = 20 #Email",
         worksheet.column_dimensions["G"].width = 13 #Mobile",
         worksheet.column_dimensions["H"].width = 10 #Status",
-        worksheet.column_dimensions["I"].width = 10 #Paid Amount",
+        worksheet.column_dimensions["I"].width = 13 #Paid Amount",
         worksheet.column_dimensions["J"].width = 10 #Pay Mode",
         worksheet.column_dimensions["K"].width = 10 #Trans ID",
         virtual_excel_file = save_virtual_workbook(workbook)
