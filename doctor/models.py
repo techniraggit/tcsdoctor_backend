@@ -204,6 +204,9 @@ class Availability(DateTimeFieldMixin):
         unique_together = ("doctor", "date", "time_slot")
 
 
+from utilities.utils import time_localize
+
+
 class Appointments(DateTimeFieldMixin):
     appointment_id = models.AutoField(primary_key=True, editable=False)
     patient = models.ForeignKey(Patients, on_delete=models.CASCADE)
@@ -239,11 +242,12 @@ class Appointments(DateTimeFieldMixin):
     def send_sms_on_status_change(self):
         message = None
         meeting_url = f"{os.environ.get('TCS_USER_FRONTEND')}{self.room_name}"
+        date_time = time_localize(self.schedule_date)
         if self.status == "scheduled":
             message = APPOINTMENT_BOOK_PATIENT.format(
                 user_name=self.patient.name,
-                appointment_date=self.schedule_date.date(),
-                appointment_time=self.schedule_date.time(),
+                appointment_date=date_time.date(),
+                appointment_time=date_time.time(),
                 pass_code=self.pass_code,
                 meeting_url=meeting_url,
             )
@@ -251,8 +255,8 @@ class Appointments(DateTimeFieldMixin):
         elif self.status == "rescheduled":
             message = APPOINTMENT_RESCHEDULE_PATIENT.format(
                 user_name=self.patient.name,
-                appointment_date=self.schedule_date.date(),
-                appointment_time=self.schedule_date.time(),
+                appointment_date=date_time.date(),
+                appointment_time=date_time.time(),
                 pass_code=self.pass_code,
                 meeting_url=meeting_url,
             )
@@ -260,19 +264,20 @@ class Appointments(DateTimeFieldMixin):
         elif self.status == "cancelled":
             message = APPOINTMENT_CANCEL_PATIENT.format(
                 user_name=self.patient.name,
-                appointment_date=self.schedule_date.date(),
-                appointment_time=self.schedule_date.time(),
+                appointment_date=date_time.date(),
+                appointment_time=date_time.time(),
             )
 
         if message:
             send_sms(f"{self.patient.phone}", message)
 
     def system_notification(self):
+        date_time = time_localize(self.schedule_date)
         push_notification_obj = PushNotification.objects.create(
             title=APPOINTMENT_REMINDER_TITLE,
             message=APPOINTMENT_REMINDER_MESSAGE.format(
-                appointment_date=self.schedule_date.date(),
-                appointment_time=self.schedule_date.time(),
+                appointment_date=date_time.date(),
+                appointment_time=date_time.time(),
             ),
             notification_type="system",
         )

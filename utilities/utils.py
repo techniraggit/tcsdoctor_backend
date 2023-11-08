@@ -1,3 +1,4 @@
+import pytz
 import uuid
 from datetime import datetime
 import re
@@ -44,3 +45,9 @@ def generate_otp(length: int = 6):
 
 def get_room_no():
     return str(uuid.uuid4()).split("-")[-1]
+
+
+def time_localize(dt):
+    india_timezone = pytz.timezone("Asia/Kolkata")
+    kolkata_time = dt.astimezone(india_timezone)
+    return kolkata_time
