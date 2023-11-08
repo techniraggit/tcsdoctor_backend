@@ -29,6 +29,7 @@ priority_choices = (
 )
 from utilities.utils import generate_otp
 
+
 class Doctors(DateTimeFieldMixin):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     specialization = models.CharField(max_length=50)
@@ -182,7 +183,6 @@ APPOINTMENT_PAYMENT_STATUS_CHOICES = (
 )
 
 
-
 class TimeSlot(models.Model):
     start_time = models.TimeField()
 
@@ -238,14 +238,14 @@ class Appointments(DateTimeFieldMixin):
 
     def send_sms_on_status_change(self):
         message = None
-        meeting_url=f"{os.environ.get('TCS_USER_FRONTEND')}{self.room_name}"
+        meeting_url = f"{os.environ.get('TCS_USER_FRONTEND')}{self.room_name}"
         if self.status == "scheduled":
             message = APPOINTMENT_BOOK_PATIENT.format(
                 user_name=self.patient.name,
                 appointment_date=self.schedule_date.date(),
                 appointment_time=self.schedule_date.time(),
                 pass_code=self.pass_code,
-                meeting_url = meeting_url,
+                meeting_url=meeting_url,
             )
 
         elif self.status == "rescheduled":
@@ -280,11 +280,14 @@ class Appointments(DateTimeFieldMixin):
 
         superuser = User.objects.filter(is_superuser=True).first()
 
-
         if superuser:
             user_push_notifications = [
-                UserPushNotification(user=self.doctor.user, notification=push_notification_obj),
-                UserPushNotification(user=superuser, notification=push_notification_obj),
+                UserPushNotification(
+                    user=self.doctor.user, notification=push_notification_obj
+                ),
+                UserPushNotification(
+                    user=superuser, notification=push_notification_obj
+                ),
             ]
 
             UserPushNotification.objects.bulk_create(user_push_notifications)
@@ -299,6 +302,7 @@ class Appointments(DateTimeFieldMixin):
         self.meeting_link = f"{os.environ.get('TCS_USER_FRONTEND')}{self.room_name}"
         super(Appointments, self).save(*args, **kwargs)
 
+
 class Transactions(DateTimeFieldMixin):
     appointment = models.ForeignKey(Appointments, models.DO_NOTHING)
     trans_id = models.CharField(max_length=50)
@@ -310,6 +314,7 @@ class Transactions(DateTimeFieldMixin):
 
     def __str__(self):
         return f"{self.id}-{self.patient}"
+
 
 class Consultation(DateTimeFieldMixin):
     appointment = models.ForeignKey(Appointments, on_delete=models.DO_NOTHING)

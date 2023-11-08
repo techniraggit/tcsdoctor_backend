@@ -50,6 +50,7 @@ LOCAL_APPS = [
     "accounts",
     "administrator",
     "doctor",
+    "user",
 ]
 
 INSTALLED_APPS += THIRD_APPS + LOCAL_APPS
@@ -200,7 +201,7 @@ FALCON_FROM_EMAIL = os.environ.get("FALCON_FROM_EMAIL")
 FALCON_FROM_NAME = os.environ.get("FALCON_FROM_NAME")
 FALCON_REPLY_TO_ID = os.environ.get("FALCON_REPLY_TO_ID")
 
-#JOBS
+# JOBS
 CRON_JOBS = [
     "1 0 * * *, scripts/update_slots.py",
     "* * * * *, scripts/change_app_status.py",

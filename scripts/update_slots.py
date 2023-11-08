@@ -1,4 +1,5 @@
 import sys
+
 if __name__ == "__main__":
     from project_setup import *
 from doctor.models import DoctorAvailability, DoctorLeave, TimeSlot, Availability

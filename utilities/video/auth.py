@@ -20,4 +20,3 @@ def get_access_token(identity, room_name):
         return True, token.to_jwt()
     except Exception as e:
         return False, ""
-

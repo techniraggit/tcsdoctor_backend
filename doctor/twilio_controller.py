@@ -9,7 +9,11 @@ def create_video_room(request):
         return JsonResponse({"status": False, "message": "Room name not found"})
 
     identity = str(uuid.uuid4())
-    status , token = get_access_token(identity=identity, room_name=room_name)
+    status, token = get_access_token(identity=identity, room_name=room_name)
     if status:
-        return JsonResponse({"status": status, "token": token, "room_name": room_name}, status=200)
-    return JsonResponse({"status": status, "message": "Token generation failed"}, status=500)
+        return JsonResponse(
+            {"status": status, "token": token, "room_name": room_name}, status=200
+        )
+    return JsonResponse(
+        {"status": status, "message": "Token generation failed"}, status=500
+    )

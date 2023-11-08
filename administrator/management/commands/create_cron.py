@@ -18,7 +18,7 @@ class Command(BaseCommand):
         try:
             jobs_list = []
             for job in settings.CRON_JOBS:
-                script_path = str(job.split(',')[1]).strip()
+                script_path = str(job.split(",")[1]).strip()
                 jobs_list.append(
                     f"{job.split(',')[0]} {python_env_path} {path_base}/{script_path}"
                 )

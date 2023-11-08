@@ -1495,3 +1495,34 @@ class AppointmentExport(AdminViewMixin):
 
         response.write(virtual_excel_file)
         return response
+
+
+class CancelAppointmentView(AdminViewMixin):
+    def patch(self, request):
+        appointment_id = request.data.get("appointment_id")
+        if not appointment_id:
+            return Response(
+                {"status": False, "message": "Appointment id required"}, 400
+            )
+
+        try:
+            appointment_obj = Appointments.objects.get(pk=appointment_id)
+        except:
+            return Response({"status": False, "message": "Appointment not found"}, 404)
+
+        appointment_obj.status = "cancelled"
+        appointment_obj.save()
+        # Release assigned doctor
+        avail_dr = Availability.objects.filter(
+            doctor=appointment_obj.doctor, id=appointment_obj.slot_key
+        ).first()
+        avail_dr.is_booked = False
+        avail_dr.save()
+
+        return Response(
+            {
+                "status": True,
+                "message": "Appointment has been successfully cancelled",
+            },
+            200,
+        )

@@ -13,6 +13,10 @@ class Command(BaseCommand):
             arg_1 = int(options["day"])
             response = UpdateSlot(arg_1)
             DeleteSlot()
-            self.stdout.write(self.style.SUCCESS(f"Slots have been successfully updated for {response}."))
+            self.stdout.write(
+                self.style.SUCCESS(
+                    f"Slots have been successfully updated for {response}."
+                )
+            )
         except Exception as e:
             self.stdout.write(self.style.ERROR(str(e)))

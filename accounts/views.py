@@ -48,7 +48,9 @@ class AdminLoginView(APIView):
                         "user_type": user_type,
                         "first_name": auth_user.first_name,
                         "last_name": auth_user.last_name,
-                        "profile_image": auth_user.profile_image.url if auth_user.profile_image else "",
+                        "profile_image": auth_user.profile_image.url
+                        if auth_user.profile_image
+                        else "",
                     },
                     200,
                 )
@@ -143,7 +145,9 @@ class ValidateLoginOTPView(APIView):
                             "user_type": user_type,
                             "first_name": user_get.first_name,
                             "last_name": user_get.last_name,
-                            "profile_image": user_get.profile_image.url if user_get.profile_image else "",
+                            "profile_image": user_get.profile_image.url
+                            if user_get.profile_image
+                            else "",
                             "message": "You have been successfully logged in",
                         },
                         200,

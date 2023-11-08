@@ -34,7 +34,7 @@ def is_valid_date(date, date_formate):
         return False
 
 
-def generate_otp(length:int=6):
+def generate_otp(length: int = 6):
     """Generate a random otp code of the specified length."""
     otp = ""
     for _ in range(length):

@@ -15,4 +15,5 @@ urlpatterns = [
     path("slots_information", views.SlotInfoView.as_view()),
     path("user_payment_price", views.UserPaymentPriceView.as_view()),
     path("appointment-export", views.AppointmentExport.as_view()),
+    path("cancel-meeting", views.CancelAppointmentView.as_view()),
 ]
