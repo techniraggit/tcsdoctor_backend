@@ -1,5 +1,8 @@
+from django.template.loader import render_to_string
+from utilities.utils import time_localize
+from utilities.utils import generate_otp
 import os
-from utilities.pigeon.service import send_sms
+from utilities.pigeon.service import send_sms, send_email
 from administrator.models import PushNotification, UserPushNotification
 from django.conf import settings
 from utilities.pigeon.templates import (
@@ -27,7 +30,6 @@ priority_choices = (
     ("medium", "Medium"),
     ("low", "Low"),
 )
-from utilities.utils import generate_otp
 
 
 class Doctors(DateTimeFieldMixin):
@@ -204,9 +206,6 @@ class Availability(DateTimeFieldMixin):
         unique_together = ("doctor", "date", "time_slot")
 
 
-from utilities.utils import time_localize
-
-
 class Appointments(DateTimeFieldMixin):
     appointment_id = models.AutoField(primary_key=True, editable=False)
     patient = models.ForeignKey(Patients, on_delete=models.CASCADE)
@@ -238,6 +237,47 @@ class Appointments(DateTimeFieldMixin):
 
     def __str__(self):
         return f"{self.appointment_id}"
+
+    def send_email_on_status_change(self):
+        message = None
+        subject = None
+        meeting_url = f"{os.environ.get('TCS_USER_FRONTEND')}{self.room_name}"
+        date_time = time_localize(self.schedule_date)
+        if self.status == "scheduled":
+            context = {
+                "user_name": self.patient.name,
+                "appointment_date": date_time.date(),
+                "appointment_time": date_time.time(),
+                "pass_code": self.pass_code,
+                "meeting_url": meeting_url,
+            }
+            subject = "Your Appointment has been scheduled successfully"
+            message = render_to_string("email/scheduled.html", context=context)
+
+        elif self.status == "rescheduled":
+            context = {
+                "user_name": self.patient.name,
+                "appointment_date": date_time.date(),
+                "appointment_time": date_time.time(),
+                "pass_code": self.pass_code,
+                "meeting_url": meeting_url,
+            }
+            subject = "Your Appointment has been rescheduled successfully"
+            message = render_to_string("email/rescheduled.html", context=context)
+
+        elif self.status == "cancelled":
+            context = {
+                "user_name": self.patient.name,
+                "appointment_date": date_time.date(),
+                "appointment_time": date_time.time(),
+            }
+            subject = "Your Appointment has been canceled successfully"
+            message = render_to_string("email/cancel.html", context=context)
+
+        if message:
+            send_email(
+                subject=subject, message=message, recipients=[self.patient.email]
+            )
 
     def send_sms_on_status_change(self):
         message = None
@@ -303,6 +343,7 @@ class Appointments(DateTimeFieldMixin):
             self.system_notification()
             if settings.IS_PRODUCTION:
                 self.send_sms_on_status_change()
+                self.send_email_on_status_change()
         self.previous_status = self.status
         self.meeting_link = f"{os.environ.get('TCS_USER_FRONTEND')}{self.room_name}"
         super(Appointments, self).save(*args, **kwargs)

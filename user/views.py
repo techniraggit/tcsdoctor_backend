@@ -432,37 +432,37 @@ def reschedule_meeting(request):
             )
 
 
-# @token_required
-# @api_view(["PATCH"])
-# def cancel_meeting(request):
-#     if request.method == "PATCH":
-#         appointment_id = request.data.get("appointment_id")
-#         if not appointment_id:
-#             return Response(
-#                 {"status": False, "message": "Appointment id required"}, 400
-#             )
+@token_required
+@api_view(["PATCH"])
+def cancel_meeting(request):
+    if request.method == "PATCH":
+        appointment_id = request.data.get("appointment_id")
+        if not appointment_id:
+            return Response(
+                {"status": False, "message": "Appointment id required"}, 400
+            )
 
-#         try:
-#             appointment_obj = Appointments.objects.get(pk=appointment_id)
-#         except:
-#             return Response({"status": False, "message": "Appointment not found"}, 404)
+        try:
+            appointment_obj = Appointments.objects.get(pk=appointment_id)
+        except:
+            return Response({"status": False, "message": "Appointment not found"}, 404)
 
-#         appointment_obj.status = "cancelled"
-#         appointment_obj.save()
-#         # Release assigned doctor
-#         avail_dr = Availability.objects.filter(
-#             doctor=appointment_obj.doctor, id=appointment_obj.slot_key
-#         ).first()
-#         avail_dr.is_booked = False
-#         avail_dr.save()
+        appointment_obj.status = "cancelled"
+        appointment_obj.save()
+        # Release assigned doctor
+        avail_dr = Availability.objects.filter(
+            doctor=appointment_obj.doctor, id=appointment_obj.slot_key
+        ).first()
+        avail_dr.is_booked = False
+        avail_dr.save()
 
-#         return Response(
-#             {
-#                 "status": True,
-#                 "message": "Appointment has been successfully cancelled",
-#             },
-#             200,
-#         )
+        return Response(
+            {
+                "status": True,
+                "message": "Appointment has been successfully cancelled",
+            },
+            200,
+        )
 
 
 @token_required
