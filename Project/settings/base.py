@@ -201,6 +201,50 @@ FALCON_FROM_EMAIL = os.environ.get("FALCON_FROM_EMAIL")
 FALCON_FROM_NAME = os.environ.get("FALCON_FROM_NAME")
 FALCON_REPLY_TO_ID = os.environ.get("FALCON_REPLY_TO_ID")
 
+LOG_FILE = os.path.join(BASE_DIR, 'logs', 'django.log')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'console': {
+            'level': 'INFO',
+            'class': 'logging.StreamHandler',
+            'formatter': 'standard',
+        },
+        'file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_FILE,
+            'maxBytes': 1024 * 1024 * 5,  # 5MB
+            'backupCount': 5,
+            'formatter': 'standard',
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': True,
+        },
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console', 'file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+    'formatters': {
+        'standard': {
+            'format': '%(asctime)s [%(levelname)s] %(name)s: %(message)s'
+        },
+    },
+}
+
 # JOBS
 CRON_JOBS = [
     "1 0 * * *, scripts/update_slots.py",
