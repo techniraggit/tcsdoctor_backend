@@ -509,7 +509,7 @@ def my_appointments(request):
 
     appointment_obj = Appointments.objects.filter(patient__user__user_id=id).order_by(
         "-created"
-    )
+    ).exclude(status="pending")
     data = AppointmentsSerializer(appointment_obj, many=True).data
     return Response({"status": True, "data": data}, 200)
 
