@@ -1,3 +1,6 @@
+from django.utils import timezone
+from utilities.utils import time_localize
+import os
 from utilities.utils import generate_otp
 from django.conf import settings
 from django.db import transaction
@@ -82,9 +85,6 @@ def time_slots(request):
         )
 
     return Response({"status": True, "data": avail})
-
-
-import os
 
 
 @token_required
@@ -363,7 +363,16 @@ def reschedule_meeting(request):
                     )
                 try:
                     appointment_obj = Appointments.objects.get(pk=appointment_id)
-
+                except:
+                    return Response(
+                        {
+                            "status": False,
+                            "message": "Appointment not found",
+                            "error": str(e),
+                        },
+                        404,
+                    )
+                try:
                     if appointment_obj.payment_status != "paid":
                         return Response(
                             {
@@ -373,47 +382,71 @@ def reschedule_meeting(request):
                             400,
                         )
 
-                    if appointment_obj.is_join:
-                        initial_schedule_date = appointment_obj.initial_schedule_date
-                        current_date = datetime.now()
-                        date_difference = current_date - initial_schedule_date
+                    initial_schedule_date = time_localize(
+                        appointment_obj.initial_schedule_date
+                    )
+                    current_date = time_localize(timezone.now())
+                    date_difference = current_date - initial_schedule_date
+                    if date_difference > timedelta(days=7):
+                        return Response(
+                            {
+                                "status": False,
+                                "message": "You are not able to reschedule this appointment",
+                            },
+                            400,
+                        )
 
-                        if date_difference > timedelta(days=7):
-                            return Response(
-                                {
-                                    "status": False,
-                                    "message": "You are not able to reschedule this appointment",
-                                },
-                                400,
-                            )
-                        else:
-                            return True
+                    if (
+                        appointment_obj.is_attend_by_user
+                        and appointment_obj.is_attend_by_doctor
+                    ) and appointment_obj.free_meetings_count > 0:
+                        # Release preassigned doctor
+                        avail_dr = Availability.objects.filter(
+                            doctor=appointment_obj.doctor, id=appointment_obj.slot_key
+                        ).first()
+                        avail_dr.is_booked = False
+                        avail_dr.save()
+
+                        appointment_obj.doctor = availability_obj.doctor
+                        appointment_obj.schedule_date = schedule_date_obj
+                        appointment_obj.slot_key = availability_obj.id
+                        appointment_obj.status = "free_scheduled"
+                        appointment_obj.free_meetings_count = (
+                            appointment_obj.free_meetings_count
+                        ) - 1
+                        appointment_obj.is_attend_by_user = False
+                        appointment_obj.is_attend_by_doctor = False
+                        appointment_obj.pass_code = generate_otp(4)
+                        appointment_obj.save()
+
+                        availability_obj.is_booked = True
+                        availability_obj.save()
+
+                    elif (
+                        not appointment_obj.is_attend_by_user
+                        and not appointment_obj.is_attend_by_doctor
+                    ):
+                        # Release preassigned doctor
+                        avail_dr = Availability.objects.filter(
+                            doctor=appointment_obj.doctor, id=appointment_obj.slot_key
+                        ).first()
+                        avail_dr.is_booked = False
+                        avail_dr.save()
+
+                        appointment_obj.doctor = availability_obj.doctor
+                        appointment_obj.schedule_date = schedule_date_obj
+                        appointment_obj.slot_key = availability_obj.id
+                        appointment_obj.status = "rescheduled"
+                        appointment_obj.pass_code = generate_otp(4)
+                        appointment_obj.save()
+
+                        availability_obj.is_booked = True
+                        availability_obj.save()
+
                 except Exception as e:
                     return Response(
-                        {
-                            "status": False,
-                            "message": "Appointment not found",
-                            "error": str(e),
-                        },
-                        404,
+                        {"status": False, "message": "Something went wrong"}, 400
                     )
-
-                # Release preassigned doctor
-                avail_dr = Availability.objects.filter(
-                    doctor=appointment_obj.doctor, id=appointment_obj.slot_key
-                ).first()
-                avail_dr.is_booked = False
-                avail_dr.save()
-
-                appointment_obj.doctor = availability_obj.doctor
-                appointment_obj.schedule_date = schedule_date_obj
-                appointment_obj.slot_key = availability_obj.id
-                appointment_obj.status = "rescheduled"
-                appointment_obj.pass_code = generate_otp(4)
-                appointment_obj.save()
-
-                availability_obj.is_booked = True
-                availability_obj.save()
 
                 return Response(
                     {
