@@ -2,9 +2,14 @@ from django.contrib import admin
 from doctor.models import *
 
 admin.site.register(Prescriptions)
-admin.site.register(Consultation)
 admin.site.register(Feedbacks)
 admin.site.register(DoctorExperience)
+
+
+@admin.register(Consultation)
+class ConsultationAdmin(admin.ModelAdmin):
+    list_display = ["appointment", "prescription"]
+    search_fields = ["appointment__id"]
 
 
 @admin.register(Users)
