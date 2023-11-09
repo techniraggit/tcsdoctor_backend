@@ -391,7 +391,7 @@ def reschedule_meeting(request):
                         return Response(
                             {
                                 "status": False,
-                                "message": "You are not able to reschedule this appointment",
+                                "message": "This appointment expired, You are not able to reschedule this appointment",
                             },
                             400,
                         )
@@ -406,21 +406,31 @@ def reschedule_meeting(request):
                         ).first()
                         avail_dr.is_booked = False
                         avail_dr.save()
-
+                        app_old_obj = appointment_obj
+                        appointment_obj.pk = None
                         appointment_obj.doctor = availability_obj.doctor
                         appointment_obj.schedule_date = schedule_date_obj
                         appointment_obj.slot_key = availability_obj.id
                         appointment_obj.status = "free_scheduled"
+                        appointment_obj.room_name = get_room_no()
                         appointment_obj.free_meetings_count = (
                             appointment_obj.free_meetings_count
                         ) - 1
                         appointment_obj.is_attend_by_user = False
                         appointment_obj.is_attend_by_doctor = False
                         appointment_obj.pass_code = generate_otp(4)
+                        app_old_obj.free_meetings_count = (app_old_obj.free_meetings_count - 1)
                         appointment_obj.save()
 
                         availability_obj.is_booked = True
                         availability_obj.save()
+                        return Response(
+                                {
+                                    "status": True,
+                                    "message": "Appointment has been successfully rescheduled",
+                                },
+                                200,
+                            )
 
                     elif (
                         not appointment_obj.is_attend_by_user
@@ -442,19 +452,26 @@ def reschedule_meeting(request):
 
                         availability_obj.is_booked = True
                         availability_obj.save()
+                        return Response(
+                                {
+                                    "status": True,
+                                    "message": "Appointment has been successfully rescheduled",
+                                },
+                                200,
+                            )
+                    else:
+                        return Response(
+                            {
+                                "status": False,
+                                "message": "You are not able to reschedule this appointment",
+                            },
+                            400,
+                        )
 
                 except Exception as e:
                     return Response(
                         {"status": False, "message": "Something went wrong"}, 400
                     )
-
-                return Response(
-                    {
-                        "status": True,
-                        "message": "Appointment has been successfully rescheduled",
-                    },
-                    200,
-                )
         except Exception as e:
             return Response(
                 {
