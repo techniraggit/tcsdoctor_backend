@@ -74,7 +74,7 @@ class DoctorAvailabilityAdmin(admin.ModelAdmin):
         "working_days",
     ]
 
-    search_fields = ["doctor__user__id"]
+    search_fields = ["doctor__user__id", "doctor__user__email"]
 
 
 
