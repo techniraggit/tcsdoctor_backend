@@ -4,13 +4,9 @@ from django.template.loader import render_to_string
 from django.conf import settings
 from django.db import transaction
 from doctor.models import (  # Doctor Models
-    Users,
     Patients,
     Appointments,
     Consultation,
-    NotePad,
-    Availability,
-    Transactions,
     Doctors,
 )
 from doctor.serializers import (  # Doctor Serializers
@@ -222,6 +218,7 @@ class NotificationsView(DoctorViewMixin):
         return Response({"status": True, "notifications": data})
 
 
+from utilities.utils import time_localize
 class ConsultView(DoctorViewMixin):
     def post(self, request):
         notepad = request.data.get("notepad")
@@ -248,7 +245,7 @@ class ConsultView(DoctorViewMixin):
             context = {
                 "doctor_name": doctor_full_name,
                 "patient_name": f"{appointment_obj.patient.name}",
-                "prescription_date": f"{consultation_obj.created}",
+                "prescription_date": f"{time_localize(consultation_obj.created)}",
                 "patient_dob": f"{appointment_obj.patient.dob}",
                 "clinic_name": f"{appointment_obj.doctor.clinic_name}",
                 "clinic_contact_number": f"{appointment_obj.doctor.clinic_contact_no}",

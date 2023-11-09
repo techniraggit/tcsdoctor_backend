@@ -370,11 +370,6 @@ class Consultation(DateTimeFieldMixin):
         db_table = "consultations"
 
 
-class NotePad(DateTimeFieldMixin):
-    room_name = models.CharField(max_length=50)
-    notepad = models.TextField()
-
-
 class Feedbacks(DateTimeFieldMixin):
     doctor = models.ForeignKey(Doctors, on_delete=models.CASCADE)
     patient = models.ForeignKey(Patients, on_delete=models.CASCADE)
