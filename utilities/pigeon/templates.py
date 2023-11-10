@@ -35,7 +35,6 @@ Time: {appointment_time}
 If you wish to reschedule or have any questions,
 please don't hesitate to reach out to us at.
 We're here to assist you.
-like 1
 """
 
 APPOINTMENT_RESCHEDULE_PATIENT = """
@@ -63,4 +62,53 @@ connection and any required materials ready.
 If you have any last-minute questions or
 need assistance, don't hesitate to
 contact us at 97979-97979.
+"""
+
+APPOINTMENT_BOOK_DOCTOR_SUBJECT = "New Appointment Confirmation"
+APPOINTMENT_BOOK_DOCTOR = """
+Dear Dr. {dr_name},
+We are pleased to inform you that a new appointment has been successfully booked for you at EyeMyEye.
+
+Date: {appointment_date}
+Time: {appointment_time}
+
+Please ensure that you are prepared for the appointment. Make sure you have a stable internet connection and any required materials ready.
+Thank you, and we look forward to your appointment.
+
+Regards,
+EyeMyEye
+
+"""
+
+APPOINTMENT_CANCEL_DOCTOR_SUBJECT = "Appointment Cancellation Notice"
+APPOINTMENT_CANCEL_DOCTOR = """
+Dear Dr. {dr_name},
+We regret to inform you that your appointment scheduled for:
+
+Date: {appointment_date}
+Time: {appointment_time}
+
+has been cancelled. If you have any questions or concerns, please don't hesitate to reach out to us at 97979797. We are here to assist you.
+We apologize for any inconvenience this may have caused and appreciate your understanding.
+
+Sincerely,
+EyeMyEye
+
+"""
+
+APPOINTMENT_RESCHEDULE_DOCTOR_SUBJECT = "Updated Appointment Information"
+APPOINTMENT_RESCHEDULE_DOCTOR = """
+Dear Dr. {dr_name},
+We understand that plans can change, and we wanted to inform you that your appointment has been rescheduled for the following time:
+
+Date: {appointment_date}
+Time: {appointment_time}
+
+Please ensure that you are prepared for the appointment. Kindly check that you have a stable internet connection and any required materials ready.
+If you have any questions or concerns about the rescheduled appointment, feel free to reach out.
+Thank you for your understanding.
+
+Sincerely,
+EyeMyEye
+
 """

@@ -11,6 +11,9 @@ from utilities.pigeon.templates import (
     APPOINTMENT_CANCEL_PATIENT,
     APPOINTMENT_REMINDER_MESSAGE,
     APPOINTMENT_REMINDER_TITLE,
+    APPOINTMENT_BOOK_DOCTOR,
+    APPOINTMENT_CANCEL_DOCTOR,
+    APPOINTMENT_RESCHEDULE_DOCTOR
 )
 import uuid
 from datetime import date
@@ -281,6 +284,7 @@ class Appointments(DateTimeFieldMixin):
 
     def send_sms_on_status_change(self):
         message = None
+        doctor_message = None
         meeting_url = f"{os.environ.get('TCS_USER_FRONTEND')}{self.room_name}"
         date_time = time_localize(self.schedule_date)
         if self.status == "scheduled":
@@ -291,6 +295,11 @@ class Appointments(DateTimeFieldMixin):
                 pass_code=self.pass_code,
                 meeting_url=meeting_url,
             )
+            doctor_message = APPOINTMENT_BOOK_DOCTOR.format(
+                dr_name = self.doctor.user.first_name,
+                appointment_date = date_time.date(),
+                appointment_time = date_time.time()
+            )
 
         elif self.status == "rescheduled":
             message = APPOINTMENT_RESCHEDULE_PATIENT.format(
@@ -300,6 +309,11 @@ class Appointments(DateTimeFieldMixin):
                 pass_code=self.pass_code,
                 meeting_url=meeting_url,
             )
+            doctor_message = APPOINTMENT_RESCHEDULE_DOCTOR.format(
+                dr_name = self.doctor.user.first_name,
+                appointment_date = date_time.date(),
+                appointment_time = date_time.time()
+            )
 
         elif self.status == "cancelled":
             message = APPOINTMENT_CANCEL_PATIENT.format(
@@ -307,9 +321,16 @@ class Appointments(DateTimeFieldMixin):
                 appointment_date=date_time.date(),
                 appointment_time=date_time.time(),
             )
-
+            doctor_message = APPOINTMENT_CANCEL_DOCTOR.format(
+                dr_name = self.doctor.user.first_name,
+                appointment_date = date_time.date(),
+                appointment_time = date_time.time()
+            )
+        print("doctor_message === ", doctor_message)
         if message:
             send_sms(f"{self.patient.phone}", message)
+        if doctor_message:
+            send_sms(f"{self.doctor.user.phone_number}", doctor_message)
 
     def system_notification(self):
         date_time = time_localize(self.schedule_date)
