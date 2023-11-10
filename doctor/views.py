@@ -49,7 +49,7 @@ class AppointmentView(DoctorViewMixin):
         filter_by_date = request.GET.get("date")
         Appointments_obj = Appointments.objects.filter(
             doctor__user=request.user
-        ).order_by("-created").exclude(status="pending")
+        ).order_by("-created").exclude(Q(status="pending") | Q(status="cancelled"))
 
         if search_query:
             if search_query not in list_of_available_search_query:
