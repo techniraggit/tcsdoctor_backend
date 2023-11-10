@@ -1,6 +1,7 @@
 from project_setup import *
 from utilities.utils import time_localize
-from utilities.pigeon.service import send_email
+from utilities.pigeon.service import send_email, send_sms
+from utilities.pigeon.templates import APPOINTMENT_REMINDER_MESSAGE
 from django.template.loader import render_to_string
 from django.db.models import Q
 from django.utils import timezone
@@ -43,6 +44,16 @@ def send_reminder():
         subject = "Reminder for upcoming Appointment"
         recipient_email = appointment.patient.email
         send_email(subject=subject, message=message, recipients=[recipient_email])
+        doc_phone = appointment.doctor.user.phone_number
+        user_phone = appointment.patient.phone
+        sms_body = APPOINTMENT_REMINDER_MESSAGE.format(
+            appointment_date = time_localize(appointment.schedule_date).date(),
+            appointment_time = time_localize(appointment.schedule_date).time(),
+        )
+        if doc_phone:
+            send_sms(doc_phone, sms_body)
+        if user_phone:
+            send_sms(user_phone, sms_body)
 
 
 if __name__ == "__main__":
