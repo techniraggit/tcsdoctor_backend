@@ -80,9 +80,7 @@ class AvailabilitySerializer(BaseSerializer):
 
 
 class ConsultationSerializer(BaseSerializer):
-    patient = PatientsSerializer(read_only=True)
-    doctor = DoctorSerializer(read_only=True)
-    appointment = AppointmentsSerializer(read_only=True, fields=["schedule_date"])
+    appointment = AppointmentsSerializer(read_only=True, fields=["appointment_id", "schedule_date", "status"])
 
     class Meta:
         model = Consultation

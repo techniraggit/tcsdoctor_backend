@@ -10,10 +10,12 @@ from doctor.models import (  # Doctor Models
     Appointments,
     Availability,
     Transactions,
+    Consultation,
 )
 from doctor.serializers import (  # Doctor Serializers
     AppointmentsSerializer,
     Patients,
+    ConsultationSerializer,
 )
 from rest_framework.response import Response
 from utilities.utils import (  # Utils
@@ -406,8 +408,8 @@ def reschedule_meeting(request):
                         ).first()
                         avail_dr.is_booked = False
                         avail_dr.save()
-                        app_old_obj = appointment_obj
-                        appointment_obj.pk = None
+                        # app_old_obj = appointment_obj
+                        # appointment_obj.pk = None
                         appointment_obj.doctor = availability_obj.doctor
                         appointment_obj.schedule_date = schedule_date_obj
                         appointment_obj.slot_key = availability_obj.id
@@ -419,18 +421,20 @@ def reschedule_meeting(request):
                         appointment_obj.is_attend_by_user = False
                         appointment_obj.is_attend_by_doctor = False
                         appointment_obj.pass_code = generate_otp(4)
-                        app_old_obj.free_meetings_count = (app_old_obj.free_meetings_count - 1)
+                        # app_old_obj.free_meetings_count = (
+                        #     app_old_obj.free_meetings_count - 1
+                        # )
                         appointment_obj.save()
 
                         availability_obj.is_booked = True
                         availability_obj.save()
                         return Response(
-                                {
-                                    "status": True,
-                                    "message": "Appointment has been successfully rescheduled",
-                                },
-                                200,
-                            )
+                            {
+                                "status": True,
+                                "message": "Appointment has been successfully rescheduled",
+                            },
+                            200,
+                        )
 
                     elif (
                         not appointment_obj.is_attend_by_user
@@ -453,12 +457,12 @@ def reschedule_meeting(request):
                         availability_obj.is_booked = True
                         availability_obj.save()
                         return Response(
-                                {
-                                    "status": True,
-                                    "message": "Appointment has been successfully rescheduled",
-                                },
-                                200,
-                            )
+                            {
+                                "status": True,
+                                "message": "Appointment has been successfully rescheduled",
+                            },
+                            200,
+                        )
                     else:
                         return Response(
                             {
@@ -524,11 +528,33 @@ def my_appointments(request):
             {"status": False, "message": "Required fields are missing"}, 400
         )
 
-    appointment_obj = Appointments.objects.filter(patient__user__user_id=id).order_by(
-        "-created"
-    ).exclude(status="pending")
+    appointment_obj = (
+        Appointments.objects.filter(patient__user__user_id=id)
+        .order_by("-created")
+        .exclude(status="pending")
+    )
     data = AppointmentsSerializer(appointment_obj, many=True).data
-    return Response({"status": True, "data": data}, 200)
+    prescription_query = Consultation.objects.filter(appointment__in=appointment_obj)
+    presciption_data = ConsultationSerializer(
+        prescription_query, many=True, fields=["prescription"]
+    ).data
+    return Response(
+        {"status": True, "data": data, "presciption_data": presciption_data}, 200
+    )
+
+
+@token_required
+@api_view(["GET"])
+def my_prescriptions(request):
+    appointment_id = request.GET.get("appointment_id")
+    if not appointment_id:
+        return Response(
+            {"status": False, "message": "Required fields are missing"}, 400
+        )
+
+    prescription_query = Consultation.objects.filter(appointment__pk=appointment_id)
+    presciption_data = ConsultationSerializer(prescription_query, many=True).data
+    return Response({"status": True, "presciption_data": presciption_data}, 200)
 
 
 @token_required

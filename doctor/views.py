@@ -1,3 +1,4 @@
+from utilities.utils import time_localize
 from utilities.utils import generate_otp
 from utilities.pigeon.service import send_email
 from django.template.loader import render_to_string
@@ -218,7 +219,6 @@ class NotificationsView(DoctorViewMixin):
         return Response({"status": True, "notifications": data})
 
 
-from utilities.utils import time_localize
 class ConsultView(DoctorViewMixin):
     def post(self, request):
         notepad = request.data.get("notepad")
