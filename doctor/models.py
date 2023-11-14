@@ -244,6 +244,8 @@ class Appointments(DateTimeFieldMixin):
     def send_email_on_status_change(self):
         message = None
         subject = None
+        doctor_message = None
+        doctor_subject = None
         meeting_url = f"{os.environ.get('TCS_USER_FRONTEND')}{self.room_name}"
         date_time = time_localize(self.schedule_date)
         if self.status == "scheduled":
@@ -256,6 +258,8 @@ class Appointments(DateTimeFieldMixin):
             }
             subject = "Your Appointment has been scheduled successfully"
             message = render_to_string("email/scheduled.html", context=context)
+            doctor_message = render_to_string("email/doc_schedule.html", context=context)
+            doctor_subject = "You have a successfully scheduled Appointment"
 
         elif self.status == "rescheduled":
             context = {
@@ -267,6 +271,8 @@ class Appointments(DateTimeFieldMixin):
             }
             subject = "Your Appointment has been rescheduled successfully"
             message = render_to_string("email/rescheduled.html", context=context)
+            doctor_message = render_to_string("email/doc_reschedule.html", context=context)
+            doctor_subject = "You had a Appointment that was rescheduled"
 
         elif self.status == "cancelled":
             context = {
@@ -276,10 +282,16 @@ class Appointments(DateTimeFieldMixin):
             }
             subject = "Your Appointment has been canceled successfully"
             message = render_to_string("email/cancel.html", context=context)
+            doctor_message = render_to_string("email/doc_cancel.html", context=context)
+            doctor_subject = "Your had a Appointment that was canceled "
 
         if message:
             send_email(
                 subject=subject, message=message, recipients=[self.patient.email]
+            )
+        if doctor_message:
+            send_email(
+                subject=doctor_subject, message=doctor_message, recipients=[self.doctor.user.email]
             )
 
     def send_sms_on_status_change(self):
