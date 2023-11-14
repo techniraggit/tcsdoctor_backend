@@ -79,6 +79,9 @@ class SendLoginOTPView(APIView):
         ).first()
 
         if user_get:
+            if not user_get.is_active:
+                return Response({"status": False, "message": "Your account is currently suspended. Please contact the administrator for further assistance"}, 400)
+
             user_get.get_otp()
             if user_get.email == username:
                 context = {

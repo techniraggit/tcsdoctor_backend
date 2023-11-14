@@ -326,7 +326,7 @@ class Appointments(DateTimeFieldMixin):
                 appointment_date = date_time.date(),
                 appointment_time = date_time.time()
             )
-        print("doctor_message === ", doctor_message)
+
         if message:
             send_sms(f"{self.patient.phone}", message)
         if doctor_message:
