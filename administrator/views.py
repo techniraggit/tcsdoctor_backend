@@ -832,6 +832,7 @@ class DoctorView(AdminViewMixin):
             return Response({"status": False, "message": "Doctor not found"}, 404)
 
         doctor_obj.is_active = not doctor_obj.is_active
+        doctor_obj.user.is_active = not doctor_obj.is_active
         doctor_obj.save()
         return Response(
             {
