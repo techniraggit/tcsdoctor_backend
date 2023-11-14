@@ -834,6 +834,7 @@ class DoctorView(AdminViewMixin):
         active_status = not doctor_obj.is_active
         doctor_obj.is_active = active_status
         doctor_obj.user.is_active = active_status
+        doctor_obj.user.save()
         doctor_obj.save()
         return Response(
             {
