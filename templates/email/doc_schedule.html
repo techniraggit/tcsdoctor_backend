@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+<head>
+    <title>EyeMyEye</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+    <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 640px; margin: 0 auto; font-family: Helvetica, sans-serif; border: 1px solid #ccc; border-radius: 10px; overflow: hidden;">
+        <tr>
+            <td style="border-bottom: 1px solid #ccc;  background: #c5e0ff; padding:20px;">
+                <a href="https://pos.niraginfotech.info/" title="EyeMyEye Logo" style="display: block; text-align: center;"> <img src="https://cdn.eyemyeye.com/desktop/images/banners/listing/poslogo.png" alt="EyeMyEyePos" width="200px" /> </a>
+            </td>
+        </tr>
+        <tr>
+            <td style="padding: 20px;">
+                <p style="font-size: 15px; color: #282c3f;font-weight: 800;"> Subject :- You have a successfully scheduled Appointment</p>
+                <p style="font-size: 14px; color: #282c3f;"> Dr {{dr_name}}, </p>
+                <p style="font-size: 14px; color: #282c3f;">Great news! You have a new scheduled appointment at.</p>
+                <p style="font-size: 14px; color: #282c3f;">Date: {{appointment_date}}</p>
+                <p style="font-size: 14px; color: #282c3f;">Time: {{appointment_time}}</p>
+                <p style="font-size: 14px; color: #282c3f;margin: 0; font-weight: 800;">Thank You,</p>
+                <p style="font-size: 14px; color: #282c3f;margin: 0; font-weight: 800;">Team EyeMyEye.</p>
+            </td>
+        </tr>
+        <tr>
+            <td style="background-color: #333232; padding:15px 20px;">
+                <p style="color: #fff; font-size: 12px; text-align: center; margin: 0;">Copyright © 2023. All Rights Reserved</p>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>
