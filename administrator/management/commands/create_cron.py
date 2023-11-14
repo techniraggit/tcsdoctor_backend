@@ -20,7 +20,7 @@ class Command(BaseCommand):
             for job in settings.CRON_JOBS:
                 script_path = str(job.split(",")[1]).strip()
                 jobs_list.append(
-                    f"{job.split(',')[0]} {python_env_path} {path_base}/{script_path}"
+                    f"{job.split(',')[0]} sudo {python_env_path} {path_base}/{script_path}"
                 )
             TASKS = "\n".join(jobs_list) + "\n"
 
