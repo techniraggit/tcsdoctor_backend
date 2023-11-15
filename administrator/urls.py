@@ -5,6 +5,7 @@ from administrator import views
 urlpatterns = [
     path("dashboard", views.DashboardView.as_view()),
     path("doctor", views.DoctorView.as_view()),
+    path("time-remove", views.RemoveAvailTimeView.as_view()),
     path("patient", views.PatientView.as_view()),
     path("appointment", views.AppointmentView.as_view()),
     path("get_push_notification_types", views.get_push_notification_types),

@@ -846,6 +846,24 @@ class DoctorView(AdminViewMixin):
         )
 
 
+class RemoveAvailTimeView(AdminViewMixin):
+    def patch(self, request):
+        id = request.data.get("id")
+        if not id:
+            return Response({"status": False, "message": "Id required"}, 400)
+        try:
+            doctor_availability = DoctorAvailability.objects.get(pk=id)
+            doctor_availability.delete()
+            return Response(
+                {"status": True, "message": "Doctor Availability removed successfully"},
+                200,
+            )
+        except:
+            return Response(
+                {"status": False, "message": "Doctor Availability not found"}, 404
+            )
+
+
 class PatientView(AdminViewMixin):
     def get(self, request):
         query_set = Patients.objects.all().select_related("user").order_by("-created")
