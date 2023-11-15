@@ -1,43 +1,28 @@
 from utilities.utils import time_localize
-from utilities.utils import generate_otp
 from utilities.pigeon.service import send_email
 from django.template.loader import render_to_string
-from django.conf import settings
-from django.db import transaction
 from doctor.models import (  # Doctor Models
-    Patients,
     Appointments,
     Consultation,
-    Doctors,
 )
 from doctor.serializers import (  # Doctor Serializers
     AppointmentsSerializer,
     PatientsSerializer,
     Patients,
     Doctors,
-    AvailabilitySerializer,
     ConsultationSerializer,
     DoctorSerializer,
 )
 from rest_framework.response import Response
-from rest_framework.views import APIView
 from utilities.utils import (  # Utils
     is_valid_date,
-    is_valid_email,
-    is_valid_phone,
-    get_room_no,
 )
-from core.decorators import token_required
 from core.mixins import DoctorViewMixin
-from rest_framework.decorators import api_view
-from administrator.models import UserPushNotification, UserPaymentPrice  # Admin models
-from administrator.serializers import UserPaymentPriceSerializer  # Admin Serializers
+from administrator.models import UserPushNotification  # Admin models
 from datetime import (  # Datetime
     datetime,
-    timedelta,
 )
 from django.db.models import (
-    F,
     Q,
 )
 

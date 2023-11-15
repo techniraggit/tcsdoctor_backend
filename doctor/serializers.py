@@ -1,8 +1,6 @@
 from core.serializers import BaseSerializer, serializers
 from doctor.models import *
 from accounts.serializers import UserSerializer
-from administrator.models import UserPushNotification
-from django.utils import timezone
 
 
 class DoctorAvailabilitySerializer(BaseSerializer):

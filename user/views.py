@@ -6,7 +6,6 @@ from django.conf import settings
 from django.db import transaction
 from doctor.models import (  # Doctor Models
     Users,
-    Patients,
     Appointments,
     Availability,
     Transactions,
