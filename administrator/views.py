@@ -1495,7 +1495,7 @@ class AppointmentExport(AdminViewMixin):
         response[
             "Content-Disposition"
         ] = f"attachment; filename=appointment_report.xlsx"
-
+        response["Content-Type"] = "application/octet-stream"
         response.write(virtual_excel_file)
         return response
 
