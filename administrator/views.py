@@ -1391,10 +1391,10 @@ class UserPaymentPriceView(AdminViewMixin):
 
 
 class AppointmentExport(AdminViewMixin):
-    def get(self, request):
-        status = request.GET.get("status")
-        from_date = request.GET.get("from_date")
-        to_date = request.GET.get("to_date")
+    def post(self, request):
+        status = request.data.get("status")
+        from_date = request.data.get("from_date")
+        to_date = request.data.get("to_date")
 
         query_set = (
             Appointments.objects.all()
