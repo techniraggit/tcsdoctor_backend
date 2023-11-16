@@ -230,7 +230,7 @@ class ConsultView(DoctorViewMixin):
             context = {
                 "doctor_name": doctor_full_name,
                 "patient_name": f"{appointment_obj.patient.name}",
-                "prescription_date": f"{time_localize(consultation_obj.created)}",
+                "prescription_date": f"{time_localize(consultation_obj.created).strftime('%Y-%m-%d %I:%M %p')}",
                 "patient_dob": f"{appointment_obj.patient.dob}",
                 "clinic_name": f"{appointment_obj.doctor.clinic_name}",
                 "clinic_contact_number": f"{appointment_obj.doctor.clinic_contact_no}",
