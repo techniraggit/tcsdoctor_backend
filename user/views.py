@@ -450,6 +450,7 @@ def reschedule_meeting(request):
                         appointment_obj.schedule_date = schedule_date_obj
                         appointment_obj.slot_key = availability_obj.id
                         appointment_obj.status = "rescheduled"
+                        appointment_obj.room_name = get_room_no()
                         appointment_obj.pass_code = generate_otp(4)
                         appointment_obj.save()
 
