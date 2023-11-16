@@ -982,6 +982,10 @@ DOWNLOAD_ACTIONS_LIST = [
 ]
 
 
+from doctor.models import Appointments, Doctors
+from accounts.models import User
+
+
 class DownloadReportView(AdminViewMixin):
     def get(self, request):
         action = request.GET.get("action", "").lower()
@@ -1063,6 +1067,7 @@ class DownloadReportView(AdminViewMixin):
         # FINANCIAL REPORT
         elif action == "salary_and_payment_report":
             doctor_ids = request.GET.get("doctor_ids")
+            all_appointmnets = Appointments.objects.all().order_by("-created")
 
             headers = [
                 "Dr. NAME",
@@ -1097,120 +1102,89 @@ class DownloadReportView(AdminViewMixin):
                         400,
                     )
 
-                row_query_set = Appointments.objects.filter(
-                    doctor__user__id__in=ids
-                ).order_by("-created")
+                Doctors_obj = Doctors.objects.select_related("user").filter(
+                    user__id=ids
+                )
             else:
-                row_query_set = Appointments.objects.all().order_by("-created")
+                Doctors_obj = Doctors.objects.select_related("user").all()
 
-            queryset = row_query_set.values(
-                "doctor__user__first_name",
-                "doctor__user__email",
-                "doctor__user__phone_number",
-            ).annotate(
-                january=Sum(
-                    Case(
-                        When(schedule_date__month=1, then=1),
-                        default=0,
-                        output_field=IntegerField(),
-                    )
-                ),
-                february=Sum(
-                    Case(
-                        When(schedule_date__month=2, then=1),
-                        default=0,
-                        output_field=IntegerField(),
-                    )
-                ),
-                march=Sum(
-                    Case(
-                        When(schedule_date__month=3, then=1),
-                        default=0,
-                        output_field=IntegerField(),
-                    )
-                ),
-                april=Sum(
-                    Case(
-                        When(schedule_date__month=4, then=1),
-                        default=0,
-                        output_field=IntegerField(),
-                    )
-                ),
-                may=Sum(
-                    Case(
-                        When(schedule_date__month=5, then=1),
-                        default=0,
-                        output_field=IntegerField(),
-                    )
-                ),
-                june=Sum(
-                    Case(
-                        When(schedule_date__month=6, then=1),
-                        default=0,
-                        output_field=IntegerField(),
-                    )
-                ),
-                july=Sum(
-                    Case(
-                        When(schedule_date__month=7, then=1),
-                        default=0,
-                        output_field=IntegerField(),
-                    )
-                ),
-                august=Sum(
-                    Case(
-                        When(schedule_date__month=8, then=1),
-                        default=0,
-                        output_field=IntegerField(),
-                    )
-                ),
-                september=Sum(
-                    Case(
-                        When(schedule_date__month=9, then=1),
-                        default=0,
-                        output_field=IntegerField(),
-                    )
-                ),
-                october=Sum(
-                    Case(
-                        When(schedule_date__month=10, then=1),
-                        default=0,
-                        output_field=IntegerField(),
-                    )
-                ),
-                november=Sum(
-                    Case(
-                        When(schedule_date__month=11, then=1),
-                        default=0,
-                        output_field=IntegerField(),
-                    )
-                ),
-                december=Sum(
-                    Case(
-                        When(schedule_date__month=12, then=1),
-                        default=0,
-                        output_field=IntegerField(),
-                    )
-                ),
-            )
-
-            for item in queryset:
+            for doctor in Doctors_obj:
                 row = [
-                    item["doctor__user__first_name"],
-                    item["doctor__user__email"],
-                    item["doctor__user__phone_number"],
-                    item["january"],
-                    item["february"],
-                    item["march"],
-                    item["april"],
-                    item["may"],
-                    item["june"],
-                    item["july"],
-                    item["august"],
-                    item["september"],
-                    item["october"],
-                    item["november"],
-                    item["december"],
+                    doctor.user.get_full_name(),
+                    doctor.user.email,
+                    doctor.user.phone_number,
+
+                    all_appointmnets.filter( # JANUARY
+                        doctor__user=doctor.user,
+                        schedule_date__month=1,
+                        status="completed",
+                    ).count(),
+
+                    all_appointmnets.filter( # FEBURARY
+                        doctor__user=doctor.user,
+                        schedule_date__month=2,
+                        status="completed",
+                    ).count(),
+
+                    all_appointmnets.filter( # MARCH
+                        doctor__user=doctor.user,
+                        schedule_date__month=3,
+                        status="completed",
+                    ).count(),
+
+                    all_appointmnets.filter(# APRIL
+                        doctor__user=doctor.user,
+                        schedule_date__month=4,
+                        status="completed",
+                    ).count(),
+
+                    all_appointmnets.filter(# MAY
+                        doctor__user=doctor.user,
+                        schedule_date__month=5,
+                        status="completed",
+                    ).count(),
+
+                    all_appointmnets.filter(# JUNE
+                        doctor__user=doctor.user,
+                        schedule_date__month=6,
+                        status="completed",
+                    ).count(),
+
+                    all_appointmnets.filter(# JULY
+                        doctor__user=doctor.user,
+                        schedule_date__month=7,
+                        status="completed",
+                    ).count(),
+
+                    all_appointmnets.filter(# AUGUST
+                        doctor__user=doctor.user,
+                        schedule_date__month=8,
+                        status="completed",
+                    ).count(),
+
+                    all_appointmnets.filter(# SEPTEMBER
+                        doctor__user=doctor.user,
+                        schedule_date__month=9,
+                        status="completed",
+                    ).count(),
+
+                    all_appointmnets.filter(# OCTOBER
+                        doctor__user=doctor.user,
+                        schedule_date__month=10,
+                        status="completed",
+                    ).count(),
+
+                    all_appointmnets.filter(# NOVEMBER
+                        doctor__user=doctor.user,
+                        schedule_date__month=11,
+                        status="completed",
+                    ).count(),
+
+                    all_appointmnets.filter(# DECEMBER
+                        doctor__user=doctor.user,
+                        schedule_date__month=12,
+                        status="completed",
+                    ).count(),
                 ]
                 worksheet.append(row)
 
