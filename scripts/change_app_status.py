@@ -13,8 +13,13 @@ def update_appointments():
     current_time = datetime.now() - timedelta(minutes=15)
 
     appointments_obj = Appointments.objects.filter(
+        schedule_date__date=current_time.date(), is_attend_by_user=True, is_attend_by_doctor=True
+    ).exclude(status="expired").update(status="completed")
+
+    appointments_obj = Appointments.objects.filter(
         schedule_date__lt=current_time,
     ).exclude(status="expired")
+
     completed_appointments = appointments_obj.filter(status="completed")
     incomplete_appointments = appointments_obj.exclude(status="completed")
     completed_appointments.update(meeting_link="", pass_code="", room_name="")
