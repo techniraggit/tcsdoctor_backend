@@ -346,6 +346,7 @@ def reschedule_meeting(request):
                 availability_obj = (
                     Availability.objects.select_for_update()
                     .filter(
+                        doctor__is_active=True,
                         date=schedule_date_obj.date(),
                         time_slot__start_time=schedule_date_obj.time(),
                         is_booked=False,
@@ -407,26 +408,24 @@ def reschedule_meeting(request):
                         ).first()
                         avail_dr.is_booked = False
                         avail_dr.save()
-                        # app_old_obj = appointment_obj
-                        # appointment_obj.pk = None
+
+                        appointment_obj.pk = None
                         appointment_obj.doctor = availability_obj.doctor
                         appointment_obj.schedule_date = schedule_date_obj
                         appointment_obj.slot_key = availability_obj.id
                         appointment_obj.status = "free_scheduled"
                         appointment_obj.room_name = get_room_no()
-                        appointment_obj.free_meetings_count = (
-                            appointment_obj.free_meetings_count
-                        ) - 1
                         appointment_obj.is_attend_by_user = False
                         appointment_obj.is_attend_by_doctor = False
                         appointment_obj.pass_code = generate_otp(4)
-                        # app_old_obj.free_meetings_count = (
-                        #     app_old_obj.free_meetings_count - 1
-                        # )
+                        appointment_obj.free_meetings_count = (appointment_obj.free_meetings_count-1)
                         appointment_obj.save()
 
                         availability_obj.is_booked = True
                         availability_obj.save()
+                        appointment_obj_old = Appointments.objects.get(pk=appointment_id)
+                        appointment_obj_old.free_meetings_count = 0
+                        appointment_obj_old.save()
                         return Response(
                             {
                                 "status": True,
@@ -474,7 +473,7 @@ def reschedule_meeting(request):
 
                 except Exception as e:
                     return Response(
-                        {"status": False, "message": "Something went wrong"}, 400
+                        {"status": False, "message": "Something went wrong", "error": str(e)}, 400
                     )
         except Exception as e:
             return Response(
