@@ -123,17 +123,6 @@ class Patients(DateTimeFieldMixin):
     dob = models.DateField()
     gender = models.CharField(max_length=20, choices=GENDER_CHOICES)
 
-    pre_health_issue = models.BooleanField(default=False)
-    pre_health_issue_text = models.TextField(null=True, blank=True)
-
-    treatment_undergoing = models.BooleanField(default=False)
-    treatment_undergoing_text = models.TextField(null=True, blank=True)
-
-    treatment_allergies = models.BooleanField(default=False)
-    treatment_allergies_text = models.TextField(null=True, blank=True)
-
-    additional_note = models.TextField(null=True, blank=True)
-
     def age(self):
         if self.dob:
             today = date.today()
@@ -234,6 +223,17 @@ class Appointments(DateTimeFieldMixin):
     previous_status = models.CharField(
         max_length=50, choices=APPOINTMENT_STATUS_CHOICES, default="pending"
     )
+
+    pre_health_issue = models.BooleanField(default=False)
+    pre_health_issue_text = models.TextField(null=True, blank=True)
+
+    treatment_undergoing = models.BooleanField(default=False)
+    treatment_undergoing_text = models.TextField(null=True, blank=True)
+
+    treatment_allergies = models.BooleanField(default=False)
+    treatment_allergies_text = models.TextField(null=True, blank=True)
+
+    additional_note = models.TextField(null=True, blank=True)
 
     class Meta:
         db_table = "appointments"

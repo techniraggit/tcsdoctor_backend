@@ -203,15 +203,6 @@ def schedule_meeting(request):
                 )
                 patient_obj.phone = patient_phone
                 patient_obj.email = patient_email
-
-                patient_obj.pre_health_issue = pre_health_issue
-                patient_obj.pre_health_issue_text = pre_health_issue_text
-                patient_obj.treatment_undergoing = treatment_undergoing
-                patient_obj.treatment_undergoing_text = treatment_undergoing_text
-                patient_obj.treatment_allergies = treatment_allergies
-                patient_obj.treatment_allergies_text = treatment_allergies_text
-                patient_obj.additional_note = additional_note
-
                 patient_obj.save()
 
                 schedule_date_obj = datetime.strptime(
@@ -250,6 +241,13 @@ def schedule_meeting(request):
                     room_name=get_room_no(),
                     free_meetings_count=settings.NO_COST_CONSULT,
                     pass_code=generate_otp(4),
+                    pre_health_issue = pre_health_issue,
+                    pre_health_issue_text = pre_health_issue_text,
+                    treatment_undergoing = treatment_undergoing,
+                    treatment_undergoing_text = treatment_undergoing_text,
+                    treatment_allergies = treatment_allergies,
+                    treatment_allergies_text = treatment_allergies_text,
+                    additional_note = additional_note,
                 )
                 availability_obj.is_booked = True
                 availability_obj.save()
