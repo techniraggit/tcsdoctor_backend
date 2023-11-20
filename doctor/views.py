@@ -146,7 +146,7 @@ class PatientDetailView(DoctorViewMixin):
                 "patient_data": patient_data,
                 "appointments_data": appointments_data,
                 "appointments_details": AppointmentsSerializer(appointments, many=True,  fields=[
-                    # "schedule_date",
+                    "schedule_date",
                     "pre_health_issue",
                     "pre_health_issue_text",
                     "treatment_undergoing",
