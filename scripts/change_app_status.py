@@ -17,12 +17,12 @@ def update_appointments():
     ).exclude(status="expired").update(status="completed")
 
     appointments_obj = Appointments.objects.filter(
-        schedule_date__lt=current_time,
+        schedule_date__lt=datetime.now() - timedelta(days=7),
     ).exclude(status="expired")
 
     completed_appointments = appointments_obj.filter(status="completed")
     incomplete_appointments = appointments_obj.exclude(status="completed")
-    completed_appointments.update(meeting_link="", pass_code="", room_name="")
+    completed_appointments.update(pass_code="", room_name="")
     incomplete_appointments.update(status="expired", pass_code="", room_name="")
 
 
