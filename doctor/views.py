@@ -132,7 +132,7 @@ class PatientDetailView(DoctorViewMixin):
         consultation_obj = Consultation.objects.filter(appointment__in=appointments)
 
         consultation_data = ConsultationSerializer(
-            consultation_obj, many=True, fields=["appointment", "prescription"]
+            consultation_obj, many=True, fields=["prescription"]
         ).data
         patient_data = PatientsSerializer(patient_obj, fields=["-user"]).data
         appointments_data = {
@@ -145,10 +145,20 @@ class PatientDetailView(DoctorViewMixin):
                 "consultation_data": consultation_data,
                 "patient_data": patient_data,
                 "appointments_data": appointments_data,
+                "appointments_details": AppointmentsSerializer(appointments, many=True,  fields=[
+                    # "schedule_date",
+                    "pre_health_issue",
+                    "pre_health_issue_text",
+                    "treatment_undergoing",
+                    "treatment_undergoing_text",
+                    "treatment_allergies",
+                    "treatment_allergies_text",
+                    "additional_note",
+                ]).data
             },
             200,
         )
-
+9690049057
 
 class ProfileView(DoctorViewMixin):
     def get(self, request):
