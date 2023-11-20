@@ -78,7 +78,19 @@ class AvailabilitySerializer(BaseSerializer):
 
 
 class ConsultationSerializer(BaseSerializer):
-    appointment = AppointmentsSerializer(read_only=True, fields=["appointment_id", "schedule_date", "status"])
+    appointment = AppointmentsSerializer(read_only=True, fields=[
+        "appointment_id",
+        "schedule_date",
+        "status", 
+        "pre_health_issue",
+        "pre_health_issue_text",
+        "treatment_undergoing",
+        "treatment_undergoing_text",
+        "treatment_allergies",
+        "treatment_allergies_text",
+        "additional_note"
+        ]
+    )
 
     class Meta:
         model = Consultation
