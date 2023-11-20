@@ -127,7 +127,7 @@ class PatientDetailView(DoctorViewMixin):
             return Response({"status": False, "message": "Patient not found"}, 404)
         appointments = Appointments.objects.filter(
             patient=patient_obj, doctor__user=request.user
-        ).order_by("-created")
+        ).order_by("-created").exclude(status="pending")
 
         consultation_obj = Consultation.objects.filter(appointment__in=appointments)
 
