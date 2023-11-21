@@ -411,7 +411,7 @@ def reschedule_meeting(request):
                         appointment_obj.doctor = availability_obj.doctor
                         appointment_obj.schedule_date = schedule_date_obj
                         appointment_obj.slot_key = availability_obj.id
-                        appointment_obj.status = "free_scheduled"
+                        appointment_obj.status = "rescheduled"
                         appointment_obj.room_name = get_room_no()
                         appointment_obj.is_attend_by_user = False
                         appointment_obj.is_attend_by_doctor = False
