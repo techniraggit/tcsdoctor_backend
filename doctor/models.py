@@ -253,7 +253,7 @@ class Appointments(DateTimeFieldMixin):
                 "user_name": self.patient.name,
                 "dr_name": self.doctor.user.get_full_name(),
                 "appointment_date": date_time.date(),
-                "appointment_time": date_time.time(),
+                "appointment_time": date_time.time().strftime("%I:%M %p"),
                 "pass_code": self.pass_code,
                 "meeting_url": meeting_url,
             }
@@ -267,7 +267,7 @@ class Appointments(DateTimeFieldMixin):
                 "user_name": self.patient.name,
                 "dr_name": self.doctor.user.get_full_name(),
                 "appointment_date": date_time.date(),
-                "appointment_time": date_time.time(),
+                "appointment_time": date_time.time().strftime("%I:%M %p"),
                 "pass_code": self.pass_code,
                 "meeting_url": meeting_url,
             }
@@ -281,7 +281,7 @@ class Appointments(DateTimeFieldMixin):
                 "user_name": self.patient.name,
                 "dr_name": self.doctor.user.get_full_name(),
                 "appointment_date": date_time.date(),
-                "appointment_time": date_time.time(),
+                "appointment_time": date_time.time().strftime("%I:%M %p"),
             }
             subject = "Your Appointment has been canceled successfully"
             message = render_to_string("email/cancel.html", context=context)
