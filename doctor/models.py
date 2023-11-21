@@ -251,6 +251,7 @@ class Appointments(DateTimeFieldMixin):
         if self.status == "scheduled":
             context = {
                 "user_name": self.patient.name,
+                "dr_name": self.doctor.user.get_full_name(),
                 "appointment_date": date_time.date(),
                 "appointment_time": date_time.time(),
                 "pass_code": self.pass_code,
@@ -264,6 +265,7 @@ class Appointments(DateTimeFieldMixin):
         elif self.status == "rescheduled":
             context = {
                 "user_name": self.patient.name,
+                "dr_name": self.doctor.user.get_full_name(),
                 "appointment_date": date_time.date(),
                 "appointment_time": date_time.time(),
                 "pass_code": self.pass_code,
@@ -277,6 +279,7 @@ class Appointments(DateTimeFieldMixin):
         elif self.status == "cancelled":
             context = {
                 "user_name": self.patient.name,
+                "dr_name": self.doctor.user.get_full_name(),
                 "appointment_date": date_time.date(),
                 "appointment_time": date_time.time(),
             }
