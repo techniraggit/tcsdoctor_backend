@@ -873,7 +873,7 @@ class PatientView(AdminViewMixin):
 
 LIST_OF_AVAILABLE_QUERY = ["pending", "completed", "rescheduled"]
 
-
+from doctor.serializers import ConsultationSerializer, Consultation
 class AppointmentView(AdminViewMixin):
     def get(self, request):
         doctor_id = request.GET.get("id")
@@ -889,7 +889,9 @@ class AppointmentView(AdminViewMixin):
                 )
 
             data = AppointmentsSerializer(query_set).data
-            return Response({"status": True, "data": data})
+            consultation_query = Consultation.objects.filter(appointment=query_set)
+            consultation_data = ConsultationSerializer(consultation_query, many=True, fields=["prescription"]).data
+            return Response({"status": True, "data": data, "consultation_data": consultation_data})
 
         if not doctor_id:
             return Response({"status": False, "message": "ID is required"}, 400)
