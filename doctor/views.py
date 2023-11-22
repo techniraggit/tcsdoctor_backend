@@ -46,13 +46,13 @@ class AppointmentView(DoctorViewMixin):
                 )
             if search_query == "scheduled":
                 query_set = Appointments_obj.filter(
-                    status=search_query, schedule_date__date__gte=datetime.now().date()
+                    status=search_query, schedule_date__gte=datetime.now()
                 )
             elif search_query == "completed":
                 query_set = Appointments_obj.filter(status=search_query)
             elif search_query == "rescheduled":
                 query_set = Appointments_obj.filter(
-                    status=search_query, schedule_date__date__gte=datetime.now().date()
+                    status=search_query, schedule_date__gte=datetime.now()
                 )
 
         elif filter_by_date:
