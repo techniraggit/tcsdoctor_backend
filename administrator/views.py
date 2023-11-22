@@ -1402,7 +1402,7 @@ class AppointmentExport(AdminViewMixin):
 
         if status:
             status = str(status).lower()
-            if status not in ["scheduled", "rescheduled", "completed", "expired"]:
+            if status not in ["pending", "scheduled", "rescheduled", "completed", "cancelled" "expired"]:
                 return Response(
                     {
                         "status": False,
