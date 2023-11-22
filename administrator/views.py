@@ -871,9 +871,10 @@ class PatientView(AdminViewMixin):
         return Response({"status": True, "data": data})
 
 
-LIST_OF_AVAILABLE_QUERY = ["pending", "completed", "rescheduled"]
+LIST_OF_AVAILABLE_QUERY = ["scheduled", "completed", "rescheduled"]
 
 from doctor.serializers import ConsultationSerializer, Consultation
+from django.utils import timezone
 class AppointmentView(AdminViewMixin):
     def get(self, request):
         doctor_id = request.GET.get("id")
@@ -905,7 +906,7 @@ class AppointmentView(AdminViewMixin):
                     }
                 )
             query_set = Appointments.objects.filter(
-                doctor__user__id=doctor_id, status=search_query
+                doctor__user__id=doctor_id, status=search_query, schedule_date__gte=timezone.now()
             ).order_by("-created")
         else:
             query_set = Appointments.objects.filter(doctor__id=doctor_id).order_by(
