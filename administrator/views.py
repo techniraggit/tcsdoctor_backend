@@ -1075,6 +1075,7 @@ class DownloadReportView(AdminViewMixin):
                 "Dr. NAME",
                 "EMAIL",
                 "PHONE",
+                "Salary",
                 "JAN",
                 "FEB",
                 "MAR",
@@ -1115,6 +1116,7 @@ class DownloadReportView(AdminViewMixin):
                     doctor.user.get_full_name(),
                     doctor.user.email,
                     doctor.user.phone_number,
+                    doctor.salary,
 
                     all_appointmnets.filter( # JANUARY
                         doctor__user=doctor.user,
@@ -1193,8 +1195,8 @@ class DownloadReportView(AdminViewMixin):
             worksheet.column_dimensions["A"].width = 15
             worksheet.column_dimensions["B"].width = 25
             worksheet.column_dimensions["C"].width = 15
+            worksheet.column_dimensions["D"].width = 10
 
-            worksheet.column_dimensions["D"].width = 5
             worksheet.column_dimensions["E"].width = 5
             worksheet.column_dimensions["F"].width = 5
             worksheet.column_dimensions["G"].width = 5
@@ -1206,6 +1208,7 @@ class DownloadReportView(AdminViewMixin):
             worksheet.column_dimensions["M"].width = 5
             worksheet.column_dimensions["N"].width = 5
             worksheet.column_dimensions["O"].width = 5
+            worksheet.column_dimensions["P"].width = 5
 
             virtual_excel_file = save_virtual_workbook(workbook)
             response[
