@@ -1113,7 +1113,7 @@ class DownloadReportView(AdminViewMixin):
                     )
 
                 Doctors_obj = Doctors.objects.select_related("user").filter(
-                    user__id=ids
+                    user__id__in=ids
                 )
             else:
                 Doctors_obj = Doctors.objects.select_related("user").all()
