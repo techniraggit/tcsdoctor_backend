@@ -1101,7 +1101,8 @@ class DownloadReportView(AdminViewMixin):
             if doctor_ids:
                 try:
                     doctor_ids = doctor_ids.split(",")
-                    ids = [int(i) for i in doctor_ids]
+                    cleaned_list = [item for item in doctor_ids if str(item).strip()]
+                    ids = [int(i) for i in cleaned_list]
                 except:
                     return Response(
                         {
@@ -1407,7 +1408,7 @@ class AppointmentExport(AdminViewMixin):
 
         if status:
             status = str(status).lower()
-            if status not in ["pending", "scheduled", "rescheduled", "completed", "cancelled" "expired"]:
+            if status not in ["pending", "scheduled", "rescheduled", "completed", "cancelled", "expired"]:
                 return Response(
                     {
                         "status": False,
