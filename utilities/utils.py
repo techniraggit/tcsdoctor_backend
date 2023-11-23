@@ -3,6 +3,7 @@ import uuid
 from datetime import datetime
 import re
 import random
+import bleach
 
 EMAIL_REGEX = re.compile(
     r'^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|'
@@ -51,3 +52,8 @@ def time_localize(dt):
     india_timezone = pytz.timezone("Asia/Kolkata")
     kolkata_time = dt.astimezone(india_timezone)
     return kolkata_time
+
+
+def remove_html_tags(input_string):
+    cleaned_string = bleach.clean(input_string, tags=[], strip=True)
+    return cleaned_string

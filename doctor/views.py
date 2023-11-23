@@ -213,7 +213,7 @@ class NotificationsView(DoctorViewMixin):
         ]
         return Response({"status": True, "notifications": data})
 
-
+from utilities.utils import remove_html_tags
 class ConsultView(DoctorViewMixin):
     def post(self, request):
         notepad = request.data.get("notepad")
@@ -244,7 +244,7 @@ class ConsultView(DoctorViewMixin):
                 "patient_dob": f"{appointment_obj.patient.dob}",
                 "clinic_name": f"{appointment_obj.doctor.clinic_name}",
                 "clinic_contact_number": f"{appointment_obj.doctor.clinic_contact_no}",
-                "prescription_details": f"{consultation_obj.prescription}",
+                "prescription_details": remove_html_tags(f"{consultation_obj.prescription}"),
             }
             body = render_to_string("email/prescription.html", context=context)
             send_email(subject, body, [patient_email])
