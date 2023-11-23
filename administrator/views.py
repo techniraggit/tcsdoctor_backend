@@ -905,9 +905,14 @@ class AppointmentView(AdminViewMixin):
                         "message": f"Invalid query provided. Please use one of the following: {', '.join(LIST_OF_AVAILABLE_QUERY)}",
                     }
                 )
-            query_set = Appointments.objects.filter(
-                doctor__user__id=doctor_id, status=search_query, schedule_date__gte=timezone.now()
-            ).order_by("-created")
+            if search_query == "completed":
+                query_set = Appointments.objects.filter(
+                    doctor__user__id=doctor_id, status=search_query
+                ).order_by("-created")
+            else:
+                query_set = Appointments.objects.filter(
+                    doctor__user__id=doctor_id, status=search_query, schedule_date__gte=timezone.now()
+                ).order_by("-created")
         else:
             query_set = Appointments.objects.filter(doctor__id=doctor_id).order_by(
                 "-created"
