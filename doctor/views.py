@@ -154,6 +154,7 @@ class PatientDetailView(DoctorViewMixin):
                     "treatment_allergies",
                     "treatment_allergies_text",
                     "additional_note",
+                    "created",
                 ]).data
             },
             200,
