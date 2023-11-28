@@ -132,7 +132,7 @@ class PatientDetailView(DoctorViewMixin):
         consultation_obj = Consultation.objects.filter(appointment__in=appointments)
 
         consultation_data = ConsultationSerializer(
-            consultation_obj, many=True, fields=["prescription"]
+            consultation_obj, many=True, fields=["prescription", "created"]
         ).data
         patient_data = PatientsSerializer(patient_obj, fields=["-user"]).data
         appointments_data = {
