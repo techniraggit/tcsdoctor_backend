@@ -992,6 +992,7 @@ DOWNLOAD_ACTIONS_LIST = [
 
 from doctor.models import Appointments, Doctors
 from accounts.models import User
+from utilities.utils import time_localize
 
 
 class DownloadReportView(AdminViewMixin):
@@ -1051,7 +1052,7 @@ class DownloadReportView(AdminViewMixin):
                     transaction_data.paid_amount if transaction_data else 0,
                     transaction_data.pay_mode if transaction_data else 0,
                     transaction_data.trans_id if transaction_data else 0,
-                    appointment.schedule_date.strftime("%b %d, %Y %I:%M %p"),
+                    time_localize(appointment.schedule_date).strftime("%b %d, %Y %I:%M %p"),
                     appointment.status,
                     appointment.meeting_link,
                 ]
