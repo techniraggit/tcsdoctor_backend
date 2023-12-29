@@ -1,36 +1,111 @@
 <!DOCTYPE html>
 {% load static %}
 <html>
-<head>
+  <head>
     <title>EyeMyEye</title>
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body>
-    <table border="0" cellpadding="0" cellspacing="0" style="width: 100%; max-width: 640px; margin: 0 auto; font-family: Helvetica, sans-serif; border: 1px solid #ccc; border-radius: 10px; overflow: hidden;">
-        <tr>
-            <td style="border-bottom: 1px solid #ccc;  background: #c5e0ff; padding:20px;">
-                <a href="https://pos.niraginfotech.info/" title="EyeMyEye Logo" style="display: block; text-align: center;"> <img src="https://cdn.eyemyeye.com/shared/images/logo/eyemyeye-logo.png" alt="EyeMyEyePos" width="200px" /> </a>
-            </td>
-        </tr>
-        <tr>
-            <td style="padding: 20px;">
-                <p style="font-size: 15px; color: #282c3f;font-weight: 800;"> Subject :- Your Appointment has been scheduled successfully </p>
-                <p style="font-size: 14px; color: #282c3f;"> Dear {{user_name}}, </p>
-                <p style="font-size: 14px; color: #282c3f;">Great news! Your appointment has been successfully booked.</p>
-                <p style="font-size: 14px; color: #282c3f;">Date: {{appointment_date}}</p>
-                <p style="font-size: 14px; color: #282c3f;">Time: {{appointment_time}}</p>
-                <p style="font-size: 14px; color: #282c3f;">PassCode: {{pass_code}}</p>
-                <p style="font-size: 14px; color: #282c3f;">click here to join meeting: {{meeting_url}}</p>
-                <p style="font-size: 14px; color: #282c3f;margin: 0; font-weight: 800;">Thank You,</p>
-                <p style="font-size: 14px; color: #282c3f;margin: 0; font-weight: 800;">Team EyeMyEye.</p>
-            </td>
-        </tr>
-        <tr>
-            <td style="background-color: #333232; padding:15px 20px;">
-                <p style="color: #fff; font-size: 12px; text-align: center; margin: 0;">Copyright © 2023. All Rights Reserved</p>
-            </td>
-        </tr>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  </head>
+  <body>
+    <table
+      border="0"
+      cellpadding="0"
+      cellspacing="0"
+      style="
+        width: 100%;
+        max-width: 640px;
+        margin: 0 auto;
+        font-family: Helvetica, sans-serif;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        overflow: hidden;
+      "
+    >
+      <tr>
+        <td
+          style="
+            border-bottom: 1px solid #ccc;
+            background: #c5e0ff;
+            padding: 20px;
+          "
+        >
+          <a
+            href="https://pos.niraginfotech.info/"
+            title="EyeMyEye Logo"
+            style="display: block; text-align: center"
+          >
+            <img
+              src="https://cdn.eyemyeye.com/shared/images/logo/eyemyeye-logo.png"
+              alt="EyeMyEyePos"
+              width="200px"
+            />
+          </a>
+        </td>
+      </tr>
+      <tr>
+        <td style="padding: 20px">
+          <p style="font-size: 15px; color: #282c3f; font-weight: 800">
+            Subject :- Online Eye Check-up Appointment Confirmation -
+            {{user_name}}
+          </p>
+          <p style="font-size: 14px; color: #282c3f">Dear {{user_name}},</p>
+          <p style="font-size: 14px; color: #282c3f">
+            We hope this email finds you well.
+          </p>
+          <p style="font-size: 14px; color: #282c3f">
+            This is to confirm the upcoming online eye check-up
+            <a href=`{{meeting_url}}`> appointment on</a> {{appointment_date}}
+            at {{appointment_time}}
+          </p>
+          <p style="font-size: 14px; color: #282c3f">PassCode: {{pass_code}}</p>
+          <ul>
+            <li style="font-size: 14px; color: #282c3f">
+              Please make sure to keep any relevant medical records or
+              information handy for the tele/video consultation.
+            </li>
+            <li style="font-size: 14px; color: #282c3f">
+              Please ensure you have a stable internet connection for the
+              tele/video consultation.
+            </li>
+            <li style="font-size: 14px; color: #282c3f">
+              Please be seated, in a well-lit room for the tele/video
+              consultation.
+            </li>
+          </ul>
+
+          <p style="font-size: 14px; color: #282c3f">
+            We look forward to seeing you soon
+          </p>
+          <p style="font-size: 14px; color: #282c3f">
+            If you have any questions or need further clarification, please
+            don't hesitate to reach out.
+          </p>
+          <p
+            style="font-size: 14px; color: #282c3f; margin: 0; font-weight: 800"
+          >
+            Best regards,
+          </p>
+          <p
+            style="font-size: 14px; color: #282c3f; margin: 0; font-weight: 800"
+          >
+            Team EyeMyEye.
+          </p>
+          <p
+            style="font-size: 14px; color: #282c3f; margin: 0; font-weight: 800"
+          >
+            Contact Us : 08069051111
+          </p>
+        </td>
+      </tr>
+      <tr>
+        <td style="background-color: #333232; padding: 15px 20px">
+          <p
+            style="color: #fff; font-size: 12px; text-align: center; margin: 0"
+          >
+            Copyright © 2023. All Rights Reserved
+          </p>
+        </td>
+      </tr>
     </table>
-</body>
+  </body>
 </html>
