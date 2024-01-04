@@ -55,10 +55,10 @@ def send_reminder():
             appointment_date = time_localize(appointment.schedule_date).date(),
             appointment_time = time_localize(appointment.schedule_date).time(),
         )
-        if doc_phone:
-            send_sms(doc_phone, sms_body)
-        if user_phone:
-            send_sms(user_phone, sms_body)
+        # if doc_phone:
+        #     send_sms(doc_phone, sms_body)
+        # if user_phone:
+        #     send_sms(user_phone, sms_body)
 
 
 if __name__ == "__main__":

@@ -574,15 +574,15 @@ class DoctorView(AdminViewMixin):
                     )
                 DoctorAvailability.objects.bulk_create(doctor_availability_list)
 
-                sms_status = send_sms(user_obj.phone_number, WELCOME)
-                if not sms_status:
-                    return Response(
-                        {
-                            "status": False,
-                            "message": "Message sending failed. Please try again later.",
-                        },
-                        500,
-                    )
+                # sms_status = send_sms(user_obj.phone_number, WELCOME)
+                # if not sms_status:
+                #     return Response(
+                #         {
+                #             "status": False,
+                #             "message": "Message sending failed. Please try again later.",
+                #         },
+                #         500,
+                #     )
             return Response(
                 {
                     "status": True,

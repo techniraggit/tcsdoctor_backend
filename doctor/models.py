@@ -344,10 +344,10 @@ class Appointments(DateTimeFieldMixin):
                 appointment_time = date_time.time()
             )
 
-        if message:
-            send_sms(f"{self.patient.phone}", message)
-        if doctor_message:
-            send_sms(f"{self.doctor.user.phone_number}", doctor_message)
+        # if message:
+        #     send_sms(f"{self.patient.phone}", message)
+        # if doctor_message:
+        #     send_sms(f"{self.doctor.user.phone_number}", doctor_message)
 
     def system_notification(self):
         date_time = time_localize(self.schedule_date)
