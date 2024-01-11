@@ -302,7 +302,7 @@ def amount_payment(request):
         try:
             with transaction.atomic():
                 appointment_obj = Appointments.objects.get(
-                    pk=appointment_id, payment_status="unpaid"
+                    pk=appointment_id #, payment_status="unpaid"
                 )
                 appointment_obj.status = "scheduled"
                 appointment_obj.payment_status = "paid"
