@@ -1,3 +1,5 @@
+from django.template.loader import get_template
+from weasyprint import HTML
 import pytz
 import uuid
 from datetime import datetime
@@ -57,3 +59,11 @@ def time_localize(dt):
 def remove_html_tags(input_string):
     cleaned_string = bleach.clean(input_string, tags=[], strip=True)
     return cleaned_string
+
+
+def generate_pdf(template_name, context_data):
+    template = get_template(template_name)
+    html_content = template.render(context_data)
+    html = HTML(string=html_content)
+    pdf_file = html.write_pdf()
+    return pdf_file

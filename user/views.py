@@ -1,7 +1,8 @@
+import base64
+from utilities.pigeon.service import send_email
+from django.template.loader import render_to_string
 from django.utils import timezone
-from utilities.utils import time_localize
 import os
-from utilities.utils import generate_otp
 from django.conf import settings
 from django.db import transaction
 from doctor.models import (  # Doctor Models
@@ -22,6 +23,9 @@ from utilities.utils import (  # Utils
     is_valid_email,
     is_valid_phone,
     get_room_no,
+    generate_otp,
+    generate_pdf,
+    time_localize,
 )
 from core.decorators import token_required
 from rest_framework.decorators import api_view
@@ -241,13 +245,13 @@ def schedule_meeting(request):
                     room_name=get_room_no(),
                     free_meetings_count=settings.NO_COST_CONSULT,
                     pass_code=generate_otp(4),
-                    pre_health_issue = pre_health_issue,
-                    pre_health_issue_text = pre_health_issue_text,
-                    treatment_undergoing = treatment_undergoing,
-                    treatment_undergoing_text = treatment_undergoing_text,
-                    treatment_allergies = treatment_allergies,
-                    treatment_allergies_text = treatment_allergies_text,
-                    additional_note = additional_note,
+                    pre_health_issue=pre_health_issue,
+                    pre_health_issue_text=pre_health_issue_text,
+                    treatment_undergoing=treatment_undergoing,
+                    treatment_undergoing_text=treatment_undergoing_text,
+                    treatment_allergies=treatment_allergies,
+                    treatment_allergies_text=treatment_allergies_text,
+                    additional_note=additional_note,
                 )
                 availability_obj.is_booked = True
                 availability_obj.save()
@@ -302,17 +306,43 @@ def amount_payment(request):
         try:
             with transaction.atomic():
                 appointment_obj = Appointments.objects.get(
-                    pk=appointment_id #, payment_status="unpaid"
+                    pk=appointment_id  # , payment_status="unpaid"
                 )
                 appointment_obj.status = "scheduled"
                 appointment_obj.payment_status = "paid"
-                Transactions.objects.create(
+                trans_obj = Transactions.objects.create(
                     appointment=appointment_obj,
                     trans_id=trans_id,
                     paid_amount=paid_amount,
                     pay_mode=pay_mode,
                 )
                 appointment_obj.save()
+                invoice_context = {
+                    "patient_name": trans_obj.appointment.patient.name,
+                    "patient_email": trans_obj.appointment.patient.email,
+                    "patient_phone": trans_obj.appointment.patient.phone,
+                    "invoice_number": trans_obj.trans_id,
+                    "invoice_date": trans_obj.created,
+                    "paid_amount": trans_obj.paid_amount,
+                    "pay_mode": trans_obj.pay_mode,
+                }
+
+            pdf_file = generate_pdf(
+                template_name="pdf/invoice.html", context_data=invoice_context
+            )
+            file_content = base64.b64encode(pdf_file).decode("utf-8")
+            html_message = render_to_string(
+                "email/invoice_content.html", context=invoice_context
+            )
+
+            send_email(
+                subject=f"Invoice for Tele Optometry Consultation - {trans_obj.appointment.patient.name}",
+                body=html_message,
+                recipients=[trans_obj.appointment.patient.email],
+                file_content=file_content,
+                file_name=f"{trans_obj.appointment.appointment_id}_invoice.pdf",
+            )
+
             return Response(
                 {"status": True, "message": "Payment successfully done"}, 200
             )
@@ -321,7 +351,6 @@ def amount_payment(request):
 
         except Exception as e:
             return Response({"status": False, "message": f"{e}"}, 400)
-
 
 @token_required
 @api_view(["PATCH"])
@@ -416,12 +445,16 @@ def reschedule_meeting(request):
                         appointment_obj.is_attend_by_user = False
                         appointment_obj.is_attend_by_doctor = False
                         appointment_obj.pass_code = generate_otp(4)
-                        appointment_obj.free_meetings_count = (appointment_obj.free_meetings_count-1)
+                        appointment_obj.free_meetings_count = (
+                            appointment_obj.free_meetings_count - 1
+                        )
                         appointment_obj.save()
 
                         availability_obj.is_booked = True
                         availability_obj.save()
-                        appointment_obj_old = Appointments.objects.get(pk=appointment_id)
+                        appointment_obj_old = Appointments.objects.get(
+                            pk=appointment_id
+                        )
                         appointment_obj_old.free_meetings_count = 0
                         appointment_obj_old.save()
                         return Response(
@@ -471,7 +504,12 @@ def reschedule_meeting(request):
 
                 except Exception as e:
                     return Response(
-                        {"status": False, "message": "Something went wrong", "error": str(e)}, 400
+                        {
+                            "status": False,
+                            "message": "Something went wrong",
+                            "error": str(e),
+                        },
+                        400,
                     )
         except Exception as e:
             return Response(

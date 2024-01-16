@@ -13,3 +13,4 @@ pretty-errors==1.2.25
 openpyxl==3.0.10
 black==23.7.0
 bleach==6.1.0
+weasyprint==60.2

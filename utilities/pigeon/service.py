@@ -1,17 +1,11 @@
 import json
 import requests
-from django.core.mail import (
-    EmailMultiAlternatives,
-    EmailMessage,
-)
 from django.conf import settings
 from twilio.rest import Client
-from rest_framework.response import Response
-
-client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
 
 
 def send_sms(mobile, message):
+    client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
     try:
         message = client.messages.create(
             body=f"{message}", from_=settings.TWILIO_NUMBER, to=f"+91{mobile}"
@@ -22,8 +16,28 @@ def send_sms(mobile, message):
         return False
 
 
-# Send Email using Falcon API
-def send_api_email(subject: str, body: str, recipients: list, attachments=None):
+def send_email(
+    subject: str, body: str, recipients: list, file_content:bytes=None, file_name:str=None
+):
+    """
+    Sends an email using a third-party API with the specified parameters.
+
+    Parameters:
+    - subject (str): The subject of the email.
+    - body (str): The body/content of the email.
+    - recipients (list): A list of email addresses to which the email will be sent.
+    - file_content (bytes, optional): The content of the file to be attached to the email.
+    - file_name (str, optional): The name of the file to be attached.
+
+    Returns:
+    - bool: True if the email is sent successfully, False otherwise.
+
+    Note:
+    - The email is sent using the Falcon API, and the API key, API URL, and other settings
+      are retrieved from the Django settings module.
+    - If file_content and file_name are provided, the function attaches the specified file
+      to the email.
+    """
     personalizations = [
         {"recipient": recipient, "recipient_cc": ()} for recipient in recipients
     ]
@@ -44,58 +58,21 @@ def send_api_email(subject: str, body: str, recipients: list, attachments=None):
         },
         "replyToId": settings.FALCON_REPLY_TO_ID,
         "content": body,
-        "attachments": attachments,
+        "attachments": None,
     }
+    if file_content and file_name:
+        params["attachments"] = [
+            {
+                "fileName": file_name,
+                "fileContent": file_content,
+            }
+        ]
     headers = {"content-type": "application/json", "api_key": settings.FALCON_API_KEY}
     response = requests.post(
         settings.FALCON_API_URL, data=json.dumps(params), headers=headers
     )
+
     if response.status_code // 100 == 2:
         return True
     else:
         return False
-
-
-# Send Email SMTP
-
-
-def send_smtp_email(
-    subject, message, recipients, attachment=None, file_type=None, file_name=None
-):
-    try:
-        if attachment:
-            email = EmailMessage(
-                subject, message, settings.DEFAULT_FROM_EMAIL, recipients
-            )
-            email.attach(file_name, attachment, file_type)
-        else:
-            email = EmailMultiAlternatives(
-                subject, message, settings.DEFAULT_FROM_EMAIL, recipients
-            )
-            email.attach_alternative(message, "text/html")
-
-        email.send()
-        return True
-    except:
-        return False
-
-
-def send_email(
-    subject: str,
-    message: str,
-    recipients: list,
-    attachments=None,
-    file_type=None,
-    file_name=None,
-):
-    if settings.IS_SMTP:
-        send_smtp_email(
-            subject,
-            message,
-            recipients,
-            attachment=None,
-            file_type=None,
-            file_name=None,
-        )
-    else:
-        send_api_email(subject, message, recipients)
