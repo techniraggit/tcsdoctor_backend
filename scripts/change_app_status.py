@@ -48,7 +48,7 @@ def send_reminder():
         message = render_to_string("email/appointment_reminder.html", context)
         subject = "Reminder for upcoming Appointment"
         recipient_email = appointment.patient.email
-        send_email(subject=subject, message=message, recipients=[recipient_email])
+        send_email(subject=subject, body=message, recipients=[recipient_email])
         doc_phone = appointment.doctor.user.phone_number
         user_phone = appointment.patient.phone
         sms_body = APPOINTMENT_REMINDER_MESSAGE.format(

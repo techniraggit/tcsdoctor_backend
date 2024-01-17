@@ -292,11 +292,11 @@ class Appointments(DateTimeFieldMixin):
 
         if message:
             send_email(
-                subject=subject, message=message, recipients=[self.patient.email]
+                subject=subject, body=message, recipients=[self.patient.email]
             )
         if doctor_message:
             send_email(
-                subject=doctor_subject, message=doctor_message, recipients=[self.doctor.user.email]
+                subject=doctor_subject, body=doctor_message, recipients=[self.doctor.user.email]
             )
 
     def send_sms_on_status_change(self):
