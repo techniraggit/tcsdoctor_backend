@@ -397,7 +397,7 @@ class Transactions(DateTimeFieldMixin):
         db_table = "transactions"
 
     def __str__(self):
-        return f"{self.id}-{self.patient}"
+        return f"{self.id}-{self.appointment.patient}"
 
 
 class Consultation(DateTimeFieldMixin):
