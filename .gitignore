@@ -1,5 +1,8 @@
-#static files & media files
+# Custom changes
+untracked_files
 media/
+static/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
