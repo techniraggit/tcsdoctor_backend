@@ -1,4 +1,5 @@
 import json
+import os
 import requests
 from django.conf import settings
 from twilio.rest import Client
@@ -19,6 +20,32 @@ def send_sms(mobile, message):
 def send_email(
     subject: str, body: str, recipients: list, file_content:bytes=None, file_name:str=None
 ):
+    CEP_API_URL = os.getenv("CEP_API_URL")
+    CEP_AUTHORIZATION = os.getenv("CEP_AUTHORIZATION")
+    CEP_SYSTEM_ID = os.getenv("CEP_SYSTEM_ID")
+    CEP_MESSAGE_ID = os.getenv("CEP_MESSAGE_ID")
+    headers = {
+    'Authorization': CEP_AUTHORIZATION,
+    'Content-Type': 'application/json'
+    }
+    data = dict(
+        sysid = CEP_SYSTEM_ID,
+        msgid = CEP_MESSAGE_ID,
+        emailid = recipients[0],
+        subject = subject,
+        body = body
+        )
+    if file_content and file_name:
+        data["attachments"] = [
+            {
+                "fileName": file_name,
+                "fileContent": file_content,
+            }
+        ]
+    response = requests.post(CEP_API_URL, headers=headers, json=data)
+    if response.status_code == 200:
+        return True
+    return False
     """
     Sends an email using a third-party API with the specified parameters.
 
