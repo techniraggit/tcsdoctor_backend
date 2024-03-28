@@ -1,3 +1,4 @@
+from utilities.utils import time_localize
 import base64
 from utilities.pigeon.service import send_email
 from django.template.loader import render_to_string
@@ -352,6 +353,7 @@ def amount_payment(request):
         except Exception as e:
             return Response({"status": False, "message": f"{e}"}, 400)
 
+
 @token_required
 @api_view(["PATCH"])
 def reschedule_meeting(request):
@@ -614,7 +616,7 @@ def user_verification(request):
             if Appointments_obj.pass_code == pass_code:
                 data = {
                     "id": Appointments_obj.pk,
-                    "schedule_date": Appointments_obj.schedule_date,
+                    "schedule_date": time_localize(Appointments_obj.schedule_date),
                 }
                 return Response(
                     {
