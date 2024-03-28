@@ -3,13 +3,14 @@ import sys
 if __name__ == "__main__":
     from project_setup import *
 from doctor.models import DoctorAvailability, DoctorLeave, TimeSlot, Availability
-from datetime import datetime, timedelta
+from datetime import datetime
+from django.utils import timezone
 
 DATE_FORMATE = "%Y/%m/%d"
 
 
 def UpdateSlot(day=7):
-    day = (datetime.now() + timedelta(days=day)).strftime(DATE_FORMATE)
+    day = (timezone.now() + timezone.timedelta(days=day)).strftime(DATE_FORMATE)
     date_obj = datetime.strptime(day, DATE_FORMATE)
     doctors_on_leave = DoctorLeave.objects.filter(
         leave_date=date_obj, is_sanction=True
@@ -36,8 +37,7 @@ def UpdateSlot(day=7):
 
 
 def DeleteSlot():
-    yesterday = (datetime.today()) - timedelta(days=1)
-    Availability.objects.filter(date=yesterday).delete()
+    Availability.objects.filter(date__lt=timezone.now().date()).delete()
 
 
 if __name__ == "__main__":
