@@ -250,5 +250,6 @@ LOGGING = {
 # JOBS
 CRON_JOBS = [
     "1 0 * * *, scripts/update_slots.py",
-    "* * * * *, scripts/change_app_status.py",
+    "* * * * *, scripts/send_reminder.py",
+    "* * * * *, scripts/update_appointment.py",
 ]
