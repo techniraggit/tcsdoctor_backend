@@ -426,11 +426,24 @@ def reschedule_meeting(request):
                             },
                             400,
                         )
+                    if not appointment_obj.free_meetings_count > 0:
+                        return Response(
+                            {
+                                "status": False,
+                                "message": "You have reached the limit of free appointments.",
+                            }
+                        )
 
-                    if (
-                        appointment_obj.is_attend_by_user
-                        and appointment_obj.is_attend_by_doctor
-                    ) and appointment_obj.free_meetings_count > 0:
+                    appointment_time_difference = time_localize(appointment_obj.schedule_date) - time_localize(timezone.now())
+                    if not appointment_time_difference >= timedelta(minutes=30):
+                        return Response(
+                            {
+                                "status": False,
+                                "message": "Apologies, it's too late to reschedule the appointment. You can reschedule appointments up to 30 minutes before the scheduled time.",
+                            }
+                        )
+
+                    if (appointment_obj.is_attend_by_user and appointment_obj.is_attend_by_doctor) or (appointment_obj.is_attend_by_doctor and not appointment_obj.is_attend_by_user):
                         # Release preassigned doctor
                         avail_dr = Availability.objects.filter(
                             doctor=appointment_obj.doctor, id=appointment_obj.slot_key
@@ -467,10 +480,7 @@ def reschedule_meeting(request):
                             200,
                         )
 
-                    elif (
-                        not appointment_obj.is_attend_by_user
-                        and not appointment_obj.is_attend_by_doctor
-                    ):
+                    elif (appointment_obj.is_attend_by_user and not appointment_obj.is_attend_by_doctor):
                         # Release preassigned doctor
                         avail_dr = Availability.objects.filter(
                             doctor=appointment_obj.doctor, id=appointment_obj.slot_key
@@ -484,6 +494,11 @@ def reschedule_meeting(request):
                         appointment_obj.status = "rescheduled"
                         appointment_obj.room_name = get_room_no()
                         appointment_obj.pass_code = generate_otp(4)
+                        # appointment_obj.free_meetings_count = (
+                        #     appointment_obj.free_meetings_count - 1
+                        # )
+                        appointment_obj.is_attend_by_user = False
+                        appointment_obj.is_attend_by_doctor = False
                         appointment_obj.save()
 
                         availability_obj.is_booked = True
@@ -572,11 +587,11 @@ def my_appointments(request):
     )
     data = AppointmentsSerializer(appointment_obj, many=True).data
     prescription_query = Consultation.objects.filter(appointment__in=appointment_obj)
-    presciption_data = ConsultationSerializer(
+    prescription_data = ConsultationSerializer(
         prescription_query, many=True, fields=["prescription"]
     ).data
     return Response(
-        {"status": True, "data": data, "presciption_data": presciption_data}, 200
+        {"status": True, "data": data, "presciption_data": prescription_data}, 200
     )
 
 
@@ -590,8 +605,8 @@ def my_prescriptions(request):
         )
 
     prescription_query = Consultation.objects.filter(appointment__pk=appointment_id)
-    presciption_data = ConsultationSerializer(prescription_query, many=True).data
-    return Response({"status": True, "presciption_data": presciption_data}, 200)
+    prescription_data = ConsultationSerializer(prescription_query, many=True).data
+    return Response({"status": True, "presciption_data": prescription_data}, 200)
 
 
 @token_required
