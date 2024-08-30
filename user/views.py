@@ -41,7 +41,7 @@ from django.db.models import (
 )
 
 # Create your views here.
-
+from .utils import Util
 
 @token_required
 @api_view(["GET"])
@@ -271,6 +271,15 @@ def schedule_meeting(request):
                     "is_join": appointment_obj.is_join,
                     "meeting_url": f"{os.environ.get('TCS_USER_FRONTEND')}{appointment_obj.room_name}",
                 }
+
+
+                body = f"Your Video Meeting Scheduled for {os.environ.get('TCS_USER_FRONTEND')}{appointment_obj.room_name}"
+                data_set = {
+                    'subject': 'Video Meeting Scheduled',
+                    'body': body,
+                    'to_email': patient_email,
+                }
+                Util.send_email(data_set)
 
                 return Response(
                     {
